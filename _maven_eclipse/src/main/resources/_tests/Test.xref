@@ -1,0 +1,6 @@
+  .def:abc (abc)    0x020A  16 (B.3)         16 (B.3)         28             
+  .def:ghi (ghi)    0x020C  17 (B.4)       
+  .xyz:abc (abc)    0x020C  20 (A.7)         20 (A.7)         29             
+  .xyz:def (def)    0x020E  21 (A.8)         27             
+  .xyz:lmn (lmn)      0x0A  11 (A.3)       
+  HERE              0x0206   6                6             

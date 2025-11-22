@@ -1,0 +1,10 @@
+         1:                    
+         2:                    	.include "LIST_INCLUDE_abc.a65"
+         3:                    
+         4:                    	.include "LIST_INCLUDE_abc.a65", list=.list
+   B.1   5:                    
+   B.2   6:  0002 A9 FF        	LDA	#$FF
+   B.3   7:                    
+         8:                    
+         9:                    	.include "LIST_INCLUDE_abc.a65", list=.nolist
+        10:                    

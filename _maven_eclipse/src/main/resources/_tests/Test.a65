@@ -1,0 +1,16 @@
+	.org 0x0200
+	
+	.byte 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+	
+     CLC
+HERE BCC HERE 
+
+    .include "abc1.a65", as=.xyz, list=.list
+    
+     LDA #ghi
+     LDA #lmn
+     
+     LDA #.xyz:def
+     LDA #.def:abc
+     LDA #.xyz:abc
+     

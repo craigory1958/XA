@@ -1,0 +1,110 @@
+<project 
+	xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	
+	
+	<name>Cross Assembler</name>
+	<artifactId>XA</artifactId>
+	<version>0.0,1</version>
+	
+	
+	<parent>
+		<groupId>xcom</groupId>
+		<artifactId>parent</artifactId>
+		<version>0.0.7</version>
+        <relativePath>../pom.xml</relativePath>    
+	</parent>
+	
+	
+	<properties>
+        <mojo.version>3.3.0</mojo.version>
+    </properties>
+
+
+    <dependencies>
+        
+        <dependency>
+        	<groupId>xcom</groupId>
+        	<artifactId>utils4j</artifactId>
+        	<version>${xcom.utils4j.version}</version>
+        </dependency>
+        
+  		<!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+		<dependency>
+    		<groupId>com.google.guava</groupId>
+    		<artifactId>guava</artifactId>
+    		<version>32.0.1-jre</version>
+			</dependency>
+		<!-- Apache Commons IO -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>${commons-io.commons-io.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/commons-cli/commons-cli -->
+		<dependency>
+   	 		<groupId>commons-cli</groupId>
+    		<artifactId>commons-cli</artifactId>
+    		<version>1.6.0</version>
+		</dependency>
+
+      	<dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>${org.antlr.antlr4-runtime.version}</version>
+        </dependency>
+        
+        <dependency>
+        	<groupId>org.springframework.boot</groupId>
+        	<artifactId>spring-boot-starter-data-jpa</artifactId>
+        	<exclusions>
+        		<exclusion>
+        			<groupId>antlr</groupId>
+        			<artifactId>antlr</artifactId>
+        		</exclusion>
+        	</exclusions>
+        </dependency>
+    </dependencies>
+
+	
+ <!--
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-maven-plugin</artifactId>
+                <version>${org.antlr.antlr4-runtime.version}</version>
+               	<executions>
+                    <execution>
+                        <goals>
+                            <goal>antlr4</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>${mojo.version}</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${basedir}/target/generated-sources/antlr4</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+-->
+</project>

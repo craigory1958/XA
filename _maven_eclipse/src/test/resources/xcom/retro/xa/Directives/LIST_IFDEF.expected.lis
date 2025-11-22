@@ -1,0 +1,24 @@
+         1:                    
+         2:                           .ifdef abc2
+         3:                    abc2        LDA #0x01
+         4:                           .endif
+         5:                    
+         6:  0000              def2
+         7:                           .ifdef def2
+         8:  0000 A9 02                    LDA #0x02    ; line assembled
+         9:                           .endif
+        10:                    
+        11:  0002              ghi2   .ifdef ghi2
+        12:  0002 A9 02                    LDA #ghi2    ; line assembled
+        13:                                .ifdef xyz2
+        14:                                    LDA #0x04
+        15:                               .endif
+        16:                           .endif
+        17:                    
+        18:                           .ifdef xyz2
+        19:                                LDA #ghi2
+        20:                                .ifdef ghi2
+        21:                                    LDA #0x04
+        22:                               .endif
+        23:                           .endif
+        24:                    

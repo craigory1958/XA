@@ -1,0 +1,6 @@
+		.include "abcM2.a65", as=.xyz, list=.list
+abc	.equ	1
+.abcM1	.macro
+		.endmacro
+		LDA #abc
+	

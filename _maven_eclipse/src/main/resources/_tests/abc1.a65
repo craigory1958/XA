@@ -1,0 +1,9 @@
+
+     NOP
+lmn .equ  10
+
+    .include "abc2.a65", as=.def, list=.list
+    
+abc  LDA  #abc
+def
+ 

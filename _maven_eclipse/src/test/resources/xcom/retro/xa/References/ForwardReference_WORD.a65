@@ -1,0 +1,3 @@
+
+    .word AHEAD
+AHEAD

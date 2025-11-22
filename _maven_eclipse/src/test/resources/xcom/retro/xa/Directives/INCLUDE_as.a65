@@ -1,0 +1,10 @@
+
+
+	.include "INCLUDE_as_abc.a65", as=.ABC, list=.list
+
+	.include "INCLUDE_as_abc.a65", as=.XYZ, list=.list
+	
+	LDA	#.XYZ:a2
+	
+	LDA	#.ABC:a1
+	
