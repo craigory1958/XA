@@ -1,75 +1,75 @@
-  .ARCH:MAP_KERNAL_MEMORY (MAP_KERNAL_MEMORY)        0xE000  137 (L.32)       322            
-  .ARCH:ROM4k_V1 (ROM4k_V1)                            0x01   89 (D.14)       132              136 (D.27)     
-  .ARCH:SBC6502_IO (SBC6502_IO)                        0x00  137 (L.20)     
-  .ARCH:SBC6502_IO_ (SBC6502_IO_)                    0xE000  137 (L.21)       137 (L.25)     
-  .ARCH:SBC6502_RAM (SBC6502_RAM)                      0x00  137 (L.15)     
-  .ARCH:SBC6502_RAM_ (SBC6502_RAM_)                  0xA000  137 (L.16)       137 (L.20)     
-  .ARCH:SBC6502_ROM (SBC6502_ROM)                      0x00  137 (L.25)     
-  .ARCH:SBC6502_eRAM (SBC6502_eRAM)                    0x00  137 (L.17)     
-  .ARCH:SBC6502_eROM (SBC6502_eROM)                    0x00  137 (L.26)     
-  .ARCH:SBC6502_eio (SBC6502_eio)                      0x00  137 (L.22)     
-  .ARCH:curTaskSegment (curTaskSegment)                0x07  137 (L.54)       362              366              370            
-  .ARCH:declared (declared)                            0x01  134 (D.25)       133 (D.24)     
-  .CPU:MOS6502 (MOS6502)                               0x01   50 (B.14)       122              126 (B.32)     
-  .CPU:MPU65XX_STACK (MPU65XX_STACK)                   0x00  127 (J.19)     
-  .CPU:MPU65XX_STACK_ (MPU65XX_STACK_)               0x01FF  127 (J.20)     
-  .CPU:MPU65XX_VECTORS (MPU65XX_VECTORS)               0x00  127 (J.23)     
-  .CPU:MPU65XX_VECTORS_ (MPU65XX_VECTORS_)           0xFFFF  127 (J.24)     
-  .CPU:MPU65XX_ZP (MPU65XX_ZP)                         0x00  127 (J.15)     
-  .CPU:MPU65XX_ZP_ (MPU65XX_ZP_)                       0xFF  127 (J.16)     
-  .CPU:W65C02 (W65C02)                                 0x02   51 (B.15)       130 (B.36)     
-  .CPU:declared (declared)                             0x01  124 (B.30)       123 (B.29)     
-  .MMU:CR0 (CR0)                                     0xA002  210 (O.191)    
-  .MMU:CR1 (CR1)                                     0xA003  222 (O.203)    
-  .MMU:INITIALIZE (INITIALIZE)                       0xE001  256 (O.237)      320            
-  .MMU:R0 (R0)                                       0xA000  188 (O.169)      258 (O.239)    
-  .MMU:R1 (R1)                                       0xA001  198 (O.179)      262 (O.243)    
-  .MMU:V1 (V1)                                         0x01   70 (C.14)       140              144 (C.27)     
-  .MMU:bitsEffectiveAddr (bitsEffectiveAddr)           0x14  164 (O.145)    
-  .MMU:bitsPID (bitsPID)                               0x02  166 (O.147)      170 (O.151)    
-  .MMU:bitsPhysicalAddr (bitsPhysicalAddr)             0x10  163 (O.144)      168 (O.149)    
-  .MMU:bitsSegmentAddr (bitsSegmentAddr)               0x06  168 (O.149)      169 (O.150)    
-  .MMU:bitsSegmentSize (bitsSegmentSize)               0x0A  165 (O.146)      168 (O.149)    
-  .MMU:configValue (configValue)                       0x80  170 (O.151)      260 (O.241)    
-  .MMU:declared (declared)                             0x01  142 (C.25)       141 (C.24)     
-  .MMU:map_segment (map_segment)                     0xE018  281 (O.262)    
-  .MMU:map_segment_args (map_segment_args)             0x00  145 (O.149)    
-  .MMU:map_segment_args:addr (addr)                    0x01  145 (O.18)     
-  .MMU:map_segment_args:effect_addr (effect_addr)      0x03  145 (O.19)     
-  .MMU:map_segment_args:pid (pid)                      0x00  145 (O.17)     
-  .MMU:mmu (mmu)                                     0xA000  174 (O.155)    
-  .MMU:mmu_ (mmu_)                                   0xA210  250 (O.231)    
-  .MMU:numSegmentVectors (numSegmentVectors)         0x0100  169 (O.150)      248 (O.229)      267 (O.248)    
-  .MMU:segment_vectors (segment_vectors)             0xA010  247 (O.228)      269 (O.250)    
-  .MMU:segment_vectors_ (segment_vectors_)           0xA210  249 (O.230)    
-  .MMU:timer_initialize (timer_initialize)           0xE017  277 (O.258)    
-  .VMK:FALSE (FALSE)                                   0x00   26 (A.14)        27 (A.15)     
-  .VMK:KERNAL_PID (KERNAL_PID)                         0x00   31 (A.19)     
-  .VMK:SYSCALL_TERMINATE (SYSCALL_TERMINATE)           0x00  113 (H.19)     
-  .VMK:TRUE (TRUE)                                     0x00   27 (A.15)     
-  .VMK:V1 (V1)                                         0x01   29 (A.17)       100              104 (A.32)       108              112 (A.32)     
-  .VMK:declared (declared)                             0x01  110 (A.30)       101 (A.29)       109 (A.29)     
-  @loop_0bf924e5bbd64ccea5f019d7aad91028 (@loop)     0xE00F  268 (O.249)      272 (O.253)    
-  CheckNextTaskStatus                                0xE057  383              396            
-  Error                                              0xE06D  401              378              390            
-  ExecuteNextTask                                    0xE06D  400              387            
-  MAP_KERNAL_MEMORY                                  0xE019  286            
-  MPU65XX_BRK                                        0xE023  342            
-  MPU65XX_BRK_VECTOR                                 0xFFFE  430 (Q.21)     
-  MPU65XX_IRQ                                        0xE023  341              431 (Q.22)     
-  MPU65XX_IRQ_VECTOR                                 0xFFFE  429 (Q.20)     
-  MPU65XX_NMI                                        0xE06E  405              427 (Q.18)     
-  MPU65XX_NMI_VECTOR                                 0xFFFA  427 (Q.18)     
-  MPU65XX_RESET                                      0xE019  315              428 (Q.19)     
-  MPU65XX_RESET_VECTOR                               0xFFFC  428 (Q.19)     
-  MPU65XX_VECTORS                                    0xFFFA  425 (Q.16)     
-  MPU65XX_VECTORS_                                   0xFFFF  433 (Q.24)     
-  bitsEffectiveAddr                                    0x14  157              161            
-  bitsPID                                              0x02  159              161            
-  bitsPhysicalAddr                                     0x10  156              161            
-  bitsSegmentSize                                      0x0A  158              161              362              366              370            
-  curTask                                              0x05  333              348              351              354              358              364              368              372            
-  curTaskRegY                                          0x05  334              346              349            
-  curTaskSegment                                       0x07  308            
-  task                                                 0x05  331              379              381              385              389              391              393              394            
-  tasks                                                0x05  332              377              380            
+  .ARCH:MAP_KERNAL_MEMORY (MAP_KERNAL_MEMORY)        0xE000  140 (L.32)       325            
+  .ARCH:ROM4k_V1 (ROM4k_V1)                            0x01   92 (D.14)       135              139 (D.27)     
+  .ARCH:SBC6502_IO (SBC6502_IO)                        0x00  140 (L.20)     
+  .ARCH:SBC6502_IO_ (SBC6502_IO_)                    0xE000  140 (L.21)       140 (L.25)     
+  .ARCH:SBC6502_RAM (SBC6502_RAM)                      0x00  140 (L.15)     
+  .ARCH:SBC6502_RAM_ (SBC6502_RAM_)                  0xA000  140 (L.16)       140 (L.20)     
+  .ARCH:SBC6502_ROM (SBC6502_ROM)                      0x00  140 (L.25)     
+  .ARCH:SBC6502_eRAM (SBC6502_eRAM)                    0x00  140 (L.17)     
+  .ARCH:SBC6502_eROM (SBC6502_eROM)                    0x00  140 (L.26)     
+  .ARCH:SBC6502_eio (SBC6502_eio)                      0x00  140 (L.22)     
+  .ARCH:curTaskSegment (curTaskSegment)                0x07  140 (L.54)       365              369              373            
+  .ARCH:declared (declared)                            0x01  137 (D.25)       136 (D.24)     
+  .CPU:MOS6502 (MOS6502)                               0x01   53 (B.14)       125              129 (B.32)     
+  .CPU:MPU65XX_STACK (MPU65XX_STACK)                   0x00  130 (J.19)     
+  .CPU:MPU65XX_STACK_ (MPU65XX_STACK_)               0x01FF  130 (J.20)     
+  .CPU:MPU65XX_VECTORS (MPU65XX_VECTORS)               0x00  130 (J.23)     
+  .CPU:MPU65XX_VECTORS_ (MPU65XX_VECTORS_)           0xFFFF  130 (J.24)     
+  .CPU:MPU65XX_ZP (MPU65XX_ZP)                         0x00  130 (J.15)     
+  .CPU:MPU65XX_ZP_ (MPU65XX_ZP_)                       0xFF  130 (J.16)     
+  .CPU:W65C02 (W65C02)                                 0x02   54 (B.15)       133 (B.36)     
+  .CPU:declared (declared)                             0x01  127 (B.30)       126 (B.29)     
+  .MMU:CR0 (CR0)                                     0xA002  213 (O.191)    
+  .MMU:CR1 (CR1)                                     0xA003  225 (O.203)    
+  .MMU:INITIALIZE (INITIALIZE)                       0xE001  259 (O.237)      323            
+  .MMU:R0 (R0)                                       0xA000  191 (O.169)      261 (O.239)    
+  .MMU:R1 (R1)                                       0xA001  201 (O.179)      265 (O.243)    
+  .MMU:V1 (V1)                                         0x01   73 (C.14)       143              147 (C.27)     
+  .MMU:bitsEffectiveAddr (bitsEffectiveAddr)           0x14  167 (O.145)    
+  .MMU:bitsPID (bitsPID)                               0x02  169 (O.147)      173 (O.151)    
+  .MMU:bitsPhysicalAddr (bitsPhysicalAddr)             0x10  166 (O.144)      171 (O.149)    
+  .MMU:bitsSegmentAddr (bitsSegmentAddr)               0x06  171 (O.149)      172 (O.150)    
+  .MMU:bitsSegmentSize (bitsSegmentSize)               0x0A  168 (O.146)      171 (O.149)    
+  .MMU:configValue (configValue)                       0x80  173 (O.151)      263 (O.241)    
+  .MMU:declared (declared)                             0x01  145 (C.25)       144 (C.24)     
+  .MMU:map_segment (map_segment)                     0xE018  284 (O.262)    
+  .MMU:map_segment_args (map_segment_args)             0x00  148 (O.149)    
+  .MMU:map_segment_args:addr (addr)                    0x01  148 (O.18)     
+  .MMU:map_segment_args:effect_addr (effect_addr)      0x03  148 (O.19)     
+  .MMU:map_segment_args:pid (pid)                      0x00  148 (O.17)     
+  .MMU:mmu (mmu)                                     0xA000  177 (O.155)    
+  .MMU:mmu_ (mmu_)                                   0xA210  253 (O.231)    
+  .MMU:numSegmentVectors (numSegmentVectors)         0x0100  172 (O.150)      251 (O.229)      270 (O.248)    
+  .MMU:segment_vectors (segment_vectors)             0xA010  250 (O.228)      272 (O.250)    
+  .MMU:segment_vectors_ (segment_vectors_)           0xA210  252 (O.230)    
+  .MMU:timer_initialize (timer_initialize)           0xE017  280 (O.258)    
+  .VMK:FALSE (FALSE)                                   0x00   29 (A.14)        30 (A.15)     
+  .VMK:KERNAL_PID (KERNAL_PID)                         0x00   34 (A.19)     
+  .VMK:SYSCALL_TERMINATE (SYSCALL_TERMINATE)           0x00  116 (H.20)     
+  .VMK:TRUE (TRUE)                                     0x00   30 (A.15)     
+  .VMK:V1 (V1)                                         0x01   32 (A.17)       103              107 (A.32)       111              115 (A.32)     
+  .VMK:declared (declared)                             0x01  113 (A.30)       104 (A.29)       112 (A.29)     
+  @loop_37da7b3fc674430cb7236cef3012474d (@loop)     0xE00F  271 (O.249)      275 (O.253)    
+  CheckNextTaskStatus                                0xE057  386              399            
+  Error                                              0xE06D  404              381              393            
+  ExecuteNextTask                                    0xE06D  403              390            
+  MAP_KERNAL_MEMORY                                  0xE019  289            
+  MPU65XX_BRK                                        0xE023  345            
+  MPU65XX_BRK_VECTOR                                 0xFFFE  433 (Q.21)     
+  MPU65XX_IRQ                                        0xE023  344              434 (Q.22)     
+  MPU65XX_IRQ_VECTOR                                 0xFFFE  432 (Q.20)     
+  MPU65XX_NMI                                        0xE06E  408              430 (Q.18)     
+  MPU65XX_NMI_VECTOR                                 0xFFFA  430 (Q.18)     
+  MPU65XX_RESET                                      0xE019  318              431 (Q.19)     
+  MPU65XX_RESET_VECTOR                               0xFFFC  431 (Q.19)     
+  MPU65XX_VECTORS                                    0xFFFA  428 (Q.16)     
+  MPU65XX_VECTORS_                                   0xFFFF  436 (Q.24)     
+  bitsEffectiveAddr                                    0x14  160              164            
+  bitsPID                                              0x02  162              164            
+  bitsPhysicalAddr                                     0x10  159              164            
+  bitsSegmentSize                                      0x0A  161              164              365              369              373            
+  curTask                                              0x05  336              351              354              357              361              367              371              375            
+  curTaskRegY                                          0x05  337              349              352            
+  curTaskSegment                                       0x07  311            
+  task                                                 0x05  334              382              384              388              392              394              396              397            
+  tasks                                                0x05  335              380              383            

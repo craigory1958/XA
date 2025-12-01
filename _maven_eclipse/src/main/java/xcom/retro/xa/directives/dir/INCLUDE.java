@@ -12,10 +12,12 @@ import java.util.function.Consumer ;
 
 import org.antlr.v4.runtime.ParserRuleContext ;
 import org.apache.commons.io.FilenameUtils ;
+import org.slf4j.Logger ;
+import org.slf4j.LoggerFactory ;
 
 import xcom.retro.xa.FileSource ;
-import xcom.retro.xa.Operand ;
 import xcom.retro.xa.Moniker ;
+import xcom.retro.xa.Operand ;
 import xcom.retro.xa.XA.AssemblyContext ;
 import xcom.retro.xa.api.annotations.aDirective ;
 import xcom.retro.xa.api.interfaces.iDirective ;
@@ -25,8 +27,12 @@ import xcom.utils4j.data.structured.map.Maps ;
 import xcom.utils4j.logging.aspects.api.annotations.Log ;
 
 
+@Log
 @aDirective
 public class INCLUDE implements iDirective {
+
+	private static final Logger Logger = LoggerFactory.getLogger(INCLUDE.class) ;
+
 
 	//@formatter:off
 
@@ -48,7 +54,6 @@ public class INCLUDE implements iDirective {
 	//
 	//
 
-	@Log
 	@Override
 	public void parse(final ParserRuleContext pctx) {
 
@@ -68,7 +73,8 @@ public class INCLUDE implements iDirective {
 		final Operand _operandAs = _operands.get("as") ;
 		final Operand _operandList = _operands.get("list") ;
 
-		final String fSpec = FilenameUtils.getFullPath(actx.decodedArgs().get("source")) + _operand1.assignment().eval(_identifiers).getValue() ;
+		final String fSpec = FilenameUtils.getFullPath((String) actx.decodedArgs().get("source")) + _operand1.assignment().eval(_identifiers).getValue() ;
+		Logger.debug("fSpec: {}", fSpec) ;
 
 		actx.list(DIR_isList(_operandList, _identifiers)) ;
 

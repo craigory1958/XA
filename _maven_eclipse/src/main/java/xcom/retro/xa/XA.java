@@ -3,6 +3,13 @@
 package xcom.retro.xa ;
 
 
+import static xcom.retro.xa.XA$Args.Arg_Binary ;
+import static xcom.retro.xa.XA$Args.Arg_Format ;
+import static xcom.retro.xa.XA$Args.Arg_List ;
+import static xcom.retro.xa.XA$Args.Arg_Processor ;
+import static xcom.retro.xa.XA$Args.Arg_XRef ;
+import static xcom.retro.xa.XA$Args.CommandLineOptions ;
+import static xcom.retro.xa.XA$Args.decodeCommandLine ;
 import static xcom.retro.xa.XA.AssemblyPhases.Assemble ;
 import static xcom.retro.xa.XA.AssemblyPhases.Extrude ;
 import static xcom.retro.xa.XA.AssemblyPhases.Generate ;
@@ -10,6 +17,7 @@ import static xcom.retro.xa.XA.AssemblyPhases.Init ;
 import static xcom.retro.xa.XA.AssemblyPhases.List ;
 import static xcom.retro.xa.XA.AssemblyPhases.Parse ;
 import static xcom.retro.xa.XA.AssemblyPhases.XRef ;
+import static xcom.utils4j.CLArgs.ExitPolicyTypes.ExitOnHelpOrVersion ;
 import static xcom.utils4j.logging.Loggers.ConsoleLoggerName ;
 
 import java.io.File ;
@@ -23,7 +31,6 @@ import java.util.Arrays ;
 import java.util.HashMap ;
 import java.util.List ;
 import java.util.Map ;
-import java.util.Map.Entry ;
 import java.util.Properties ;
 import java.util.Set ;
 import java.util.Stack ;
@@ -38,13 +45,7 @@ import org.antlr.v4.runtime.tree.ParseTreeListener ;
 import org.antlr.v4.runtime.tree.ParseTreeWalker ;
 import org.apache.commons.cli.CommandLine ;
 import org.apache.commons.cli.DefaultParser ;
-import org.apache.commons.cli.HelpFormatter ;
-import org.apache.commons.cli.Option ;
-import org.apache.commons.cli.Options ;
-import org.apache.commons.cli.ParseException ;
 import org.apache.commons.io.FileUtils ;
-import org.apache.commons.io.FilenameUtils ;
-import org.apache.commons.lang3.StringUtils ;
 import org.fest.reflect.core.Reflection ;
 import org.reflections.Reflections ;
 import org.slf4j.Logger ;
@@ -63,6 +64,7 @@ import xcom.retro.xa.directives.dir.MACRO ;
 import xcom.retro.xa.directives.dir.STRUCT ;
 import xcom.retro.xa.extruders.AssemblyLister ;
 import xcom.retro.xa.extruders.XRefLister ;
+import xcom.utils4j.CLArgs ;
 import xcom.utils4j.data.structured.list.Lists ;
 import xcom.utils4j.logging.aspects.api.annotations.Log ;
 import xcom.utils4j.resources.Props ;
@@ -80,10 +82,10 @@ public class XA {
 
 		//@formatter:off
 
-		CommandLine cmdLine ;
+		CommandLine cmd ;
 
-		Map<String, String> decodedArgs ;
-		public Map<String, String> decodedArgs() { return decodedArgs ; }
+		Map<String, Object> decodedArgs ;
+		public Map<String, Object> decodedArgs() { return decodedArgs ; }
 
 		Map<String, iDirective> directives ;
 		public Map<String, iDirective> directives() { return directives ; }
@@ -168,45 +170,18 @@ public class XA {
 		public boolean assembleEnable() {
 			return ifBlocks.peek() ;
 		}
-
 	}
 
 
 	private static final Logger Logger = LoggerFactory.getLogger(XA.class) ;
 	private static final Logger Console = LoggerFactory.getLogger(ConsoleLoggerName) ;
 
+	static final String AppClassname = XA.class.getName() ;
+	static final String AppDesc = XA.class.getSimpleName() + " - 6502 Cross Assembler" ;
 	static final String AppName = XA.class.getSimpleName() ;
-
-
-	/**
-	 * The valid command line options.
-	 */
-	static final String CommandLineOption_Help = "h" ;
-	static final String CommandLineOptionLong_Help = "help" ;
-	static final String CommandLineOption_Version = "v" ;
-	static final String CommandLineOptionLong_Version = "version" ;
-	static final String CommandLineOption_Binary = "b" ;
-	static final String CommandLineOption_Format = "f" ;
-	static final String CommandLineOption_List = "l" ;
-	static final String CommandLineOption_XRef = "x" ;
-	static final String CommandLineOption_Processor = "p" ;
-
-	static final Options CommandLineOptions = new Options() ;
-
-	static {
-		CommandLineOptions.addOption(Option.builder(CommandLineOption_Help).longOpt(CommandLineOptionLong_Help).desc("display this message").build()) ;
-		CommandLineOptions
-				.addOption(Option.builder(CommandLineOption_Version).longOpt(CommandLineOptionLong_Version).desc("display version information").build()) ;
-
-		CommandLineOptions
-				.addOption(Option.builder(CommandLineOption_Binary).argName("file").hasArg().optionalArg(true).desc("generate assembly binary").build()) ;
-		CommandLineOptions.addOption(Option.builder(CommandLineOption_Format).argName("format").hasArg().optionalArg(true).desc("binray format").build()) ;
-		CommandLineOptions
-				.addOption(Option.builder(CommandLineOption_List).argName("file").hasArg().optionalArg(true).desc("generate assembly listing").build()) ;
-		CommandLineOptions
-				.addOption(Option.builder(CommandLineOption_XRef).argName("file").hasArg().optionalArg(true).desc("generate cross reference listing").build()) ;
-		CommandLineOptions.addOption(Option.builder(CommandLineOption_Processor).argName("processor").hasArg().desc("processor").build()) ;
-	}
+	static final String AppSee = "See https://github.com/craigory1958/XA" ;
+	static final String AppUsage = "java -cp " + XA.class.getSimpleName().toLowerCase() + ".jar" + XA.class.getName() + "[options] src" ;
+	static final String AppVersion = "--version: v1.0.0" ;
 
 
 	Properties props ;
@@ -228,7 +203,7 @@ public class XA {
 		actx.phase = Init ;
 
 		{
-			aProcessor processor = (aProcessor) processors.get(actx.decodedArgs.get(CommandLineOption_Processor)).getAnnotation(aProcessor.class) ;
+			aProcessor processor = (aProcessor) processors.get(actx.decodedArgs.get(Arg_Processor)).getAnnotation(aProcessor.class) ;
 
 			final Class<? extends Lexer> lexerClass = Reflection.type(processor.lexar().getName()).loadAs(Lexer.class) ;
 			actx.lexer = Reflection.constructor().withParameterTypes(CharStream.class).in(lexerClass).newInstance(CharStreams.fromString("")) ;
@@ -253,7 +228,7 @@ public class XA {
 
 		actx.phase = Parse ;
 
-		actx.sources.add(new FileSource(actx.sources.size(), actx.decodedArgs.get("source"), actx.list())) ;
+		actx.sources.add(new FileSource(actx.sources.size(), (String) actx.decodedArgs.get("source"), actx.list())) ;
 		actx.source.push(Lists.last(actx.sources)) ;
 
 		actx.segments.put("<default>", new Segment("<default>")) ;
@@ -267,7 +242,8 @@ public class XA {
 			for ( String line; (line = actx.source.peek().next()) != null; ) {
 
 				line = line.stripTrailing() ;
-				Console.debug(">>>{}", line) ;
+				Console.info(">>>{}", line) ;
+
 
 				if ( actx.list() )
 					actx.ln += 1 ;
@@ -344,20 +320,20 @@ public class XA {
 
 		actx.phase = Extrude ;
 
-		if ( actx.cmdLine.hasOption(CommandLineOption_Binary) ) {
+		if ( actx.cmd.hasOption(Arg_Binary) ) {
 
-			final String extruderClassname = extruders.get(actx.decodedArgs.get(CommandLineOption_Format)).getName() ;
+			final String extruderClassname = extruders.get(actx.decodedArgs.get(Arg_Format)).getName() ;
 			final Class<? extends iExtruder> extruderClass = Reflection.type(extruderClassname).loadAs(iExtruder.class) ;
 			final iExtruder extruder = Reflection.constructor().in(extruderClass).newInstance() ;
 
-			try ( FileWriter fileWriter = new FileWriter(actx.decodedArgs.get(CommandLineOption_Binary)); PrintWriter out = new PrintWriter(fileWriter); ) {
+			try ( FileWriter fileWriter = new FileWriter((String) actx.decodedArgs.get(Arg_Binary)); PrintWriter out = new PrintWriter(fileWriter); ) {
 				extruder.extrude(out, actx) ;
 			}
 		}
 
 		Console.info("") ;
-		Console.info(actx.decodedArgs.get(CommandLineOption_Binary)) ;
-		Console.info(FileUtils.readFileToString(new File(actx.decodedArgs.get(CommandLineOption_Binary)), Charset.defaultCharset())) ;
+		Console.info((String) actx.decodedArgs.get(Arg_Binary)) ;
+		Console.info(FileUtils.readFileToString(new File((String) actx.decodedArgs.get(Arg_Binary)), Charset.defaultCharset())) ;
 
 		return this ;
 	}
@@ -368,19 +344,19 @@ public class XA {
 
 		actx.phase = List ;
 
-		if ( actx.cmdLine.hasOption(CommandLineOption_List) ) {
+		if ( actx.cmd.hasOption(Arg_List) ) {
 
 			final String extruderClassname = extruders.get(AssemblyLister.class.getSimpleName()).getName() ;
 			final Class<? extends iExtruder> extruderClass = Reflection.type(extruderClassname).loadAs(iExtruder.class) ;
 			final iExtruder lister = Reflection.constructor().in(extruderClass).newInstance() ;
 
-			try ( FileWriter fileWriter = new FileWriter(actx.decodedArgs.get(CommandLineOption_List)); PrintWriter out = new PrintWriter(fileWriter); ) {
+			try ( FileWriter fileWriter = new FileWriter((String) actx.decodedArgs.get(Arg_List)); PrintWriter out = new PrintWriter(fileWriter); ) {
 				lister.extrude(out, actx) ;
 			}
 
 			Console.info("") ;
-			Console.info(actx.decodedArgs.get(CommandLineOption_List)) ;
-			Console.info(FileUtils.readFileToString(new File(actx.decodedArgs.get(CommandLineOption_List)), Charset.defaultCharset())) ;
+			Console.info((String) actx.decodedArgs.get(Arg_List)) ;
+			Console.info(FileUtils.readFileToString(new File((String) actx.decodedArgs.get(Arg_List)), Charset.defaultCharset())) ;
 		}
 
 		return this ;
@@ -392,19 +368,19 @@ public class XA {
 
 		actx.phase = XRef ;
 
-		if ( actx.cmdLine.hasOption(CommandLineOption_XRef) ) {
+		if ( actx.cmd.hasOption(Arg_XRef) ) {
 
 			final String extruderClassname = extruders.get(XRefLister.class.getSimpleName()).getName() ;
 			final Class<? extends iExtruder> extruderClass = Reflection.type(extruderClassname).loadAs(iExtruder.class) ;
 			final iExtruder lister = Reflection.constructor().in(extruderClass).newInstance() ;
 
-			try ( FileWriter fileWriter = new FileWriter(actx.decodedArgs.get(CommandLineOption_XRef)); PrintWriter out = new PrintWriter(fileWriter); ) {
+			try ( FileWriter fileWriter = new FileWriter((String) actx.decodedArgs.get(Arg_XRef)); PrintWriter out = new PrintWriter(fileWriter); ) {
 				lister.extrude(out, actx) ;
 			}
 
 			Console.info("") ;
-			Console.info(actx.decodedArgs.get(CommandLineOption_XRef)) ;
-			Console.info(FileUtils.readFileToString(new File(actx.decodedArgs.get(CommandLineOption_XRef)), Charset.defaultCharset())) ;
+			Console.info((String) actx.decodedArgs.get(Arg_XRef)) ;
+			Console.info(FileUtils.readFileToString(new File((String) actx.decodedArgs.get(Arg_XRef)), Charset.defaultCharset())) ;
 		}
 
 		return this ;
@@ -417,58 +393,73 @@ public class XA {
 
 	public static void main(final String[] args) throws Exception {
 
-		// Parse and process command line arguments ...
+		// Load properties ...
 
-		final CommandLine cmdLine = parseCommandLine(args, CommandLineOptions) ;
-
-		if ( cmdLine.hasOption(CommandLineOption_Help) )
-			new HelpFormatter().printHelp("xa [options] file\n options:", CommandLineOptions) ;
-
-		else if ( cmdLine.hasOption(CommandLineOption_Version) )
-			Console.warn("v0.0.1") ;
-
-		else {
-			final XA $ = new XA() ;
-			$.actx.cmdLine = cmdLine ;
-			$.props = loadXAProperties() ;
-
-			{
-				final String path = $.props.getProperty("XA.processor.scan.classpath") ;
-				$.processors = scanAndLoadByAnnotationType(path, aProcessor.class.getName(), $.processors) ;
-
-				Logger.debug("processors: {}", $.processors) ;
-			}
-
-			{
-				final String path = $.props.getProperty("XA.extruder.scan.classpath") ;
-				$.extruders = scanAndLoadByAnnotationType(path, aExtruder.class.getName(), $.extruders) ;
-
-				Logger.debug("extruders: {}", $.extruders) ;
-			}
-
-			{
-				final String path = $.props.getProperty("XA.directive.scan.classpath") ;
-				$.actx.directives = scanAndInstantiateByAnnotationType(path, aDirective.class.getName(), iDirective.class, $.actx, $.actx.directives) ;
-
-				Logger.debug("directives: {}", $.actx.directives) ;
-			}
+		Properties props = Props.load(XA.class, AppName + ".properties") ;
+		CLArgs.loadAppProps(props, AppClassname, AppDesc, AppName, AppSee, AppUsage, AppVersion) ;
+		Logger.debug("props: {}", props) ;
 
 
-			Map<String, aProcessor> srcFNExts = buildSourceFilenameExtensions($.processors) ;
+		// Parse and decode base command line arguments ...
+		
+		final String[] _args = Arrays.copyOf(args, args.length + 1) ;
+		_args[(args.length > 0 ? args.length - 1 : 0)] = "" ;
+		_args[args.length] = (args.length > 0 ? args[args.length - 1] : "") ;
+		Logger.warn("_args: {}", Arrays.asList(_args)) ;
 
-			$.actx.decodedArgs = decodeCommandLine($.actx.cmdLine, srcFNExts, $.props, $.actx.decodedArgs) ;
+		final CommandLine cmd = new DefaultParser().parse(CommandLineOptions, _args) ;
+		Map<String, Object> decodedArgs = null ;
+		decodedArgs = CLArgs.decodeArg_HelpAndVersion(cmd, CommandLineOptions, decodedArgs, props, Console, ExitOnHelpOrVersion) ;
+		decodedArgs = CLArgs.decodeArg_Log(cmd, CommandLineOptions, decodedArgs, props, Console) ;
+		Logger.debug("decodedArgs: {}", decodedArgs) ;
 
 
-			//
+		// Instantiate and process ...
 
-			Console.info("\nUsage ...") ;
-			for ( final Entry<String, String> arg : $.actx.decodedArgs.entrySet() )
-				Console.info("    -" + arg.getKey() + " " + StringUtils.trimToEmpty(arg.getValue())) ;
+		final XA $ = new XA() ;
+		$.actx.cmd = cmd ;
+		$.props = props ;
 
-			$.init().parse().assemble().generate().extrude().list().xref() ;
+		{
+			final String path = $.props.getProperty("XA.processor.scan.classpath") ;
+			$.processors = scanAndLoadByAnnotationType(path, aProcessor.class.getName(), $.processors) ;
 
-			Console.info("Done.") ;
+			Logger.debug("processors: {}", $.processors) ;
 		}
+
+		{
+			final String path = $.props.getProperty("XA.extruder.scan.classpath") ;
+			$.extruders = scanAndLoadByAnnotationType(path, aExtruder.class.getName(), $.extruders) ;
+
+			Logger.debug("extruders: {}", $.extruders) ;
+		}
+
+		{
+			final String path = $.props.getProperty("XA.directive.scan.classpath") ;
+			$.actx.directives = scanAndInstantiateByAnnotationType(path, aDirective.class.getName(), iDirective.class, $.actx, $.actx.directives) ;
+
+			Logger.debug("directives: {}", $.actx.directives) ;
+		}
+
+
+		Map<String, aProcessor> srcFNExts = buildSourceFilenameExtensions($.processors) ;
+
+		
+		// Decode command line arguments ...
+
+//		XA$Args $args = new XA$Args(cmd, props, args, decodedArgs) ;
+		$.actx.decodedArgs = decodeCommandLine($.actx.cmd, srcFNExts, $.props, decodedArgs) ;
+		Logger.info("decodedArgs: {}", Arrays.asList($.actx.decodedArgs())) ;
+
+
+		XA$Args.printToolUsage(AppUsage, AppDesc, $.actx.decodedArgs(), Console) ;
+
+
+		//
+
+		$.init().parse().assemble().generate().extrude().list().xref() ;
+
+		Console.info("Done.") ;
 	}
 
 
@@ -486,18 +477,6 @@ public class XA {
 
 
 		return srcFNExts ;
-	}
-
-
-	static Properties loadXAProperties() throws IOException {
-
-		final String rSpec = "/" + (XA.class.getName()).replace(".", "/") + ".properties" ;
-		Properties props = Props.merge(XA.class, new Properties(), rSpec) ;
-
-		Logger.debug("props @{}: {}", rSpec, props) ;
-
-
-		return props ;
 	}
 
 
@@ -560,172 +539,5 @@ public class XA {
 
 
 		return annotations ;
-	}
-
-
-	//
-	//
-	//
-
-	static CommandLine parseCommandLine(final String[] args, final Options options) throws ParseException {
-
-		final String[] _args = Arrays.copyOf(args, args.length + 1) ;
-		_args[(args.length > 0 ? args.length - 1 : 0)] = "" ;
-		_args[args.length] = (args.length > 0 ? args[args.length - 1] : "") ;
-
-		Logger.warn("_args: {}", Arrays.asList(_args)) ;
-
-		return new DefaultParser().parse(options, _args) ;
-	}
-
-
-	static Map<String, String> decodeCommandLine(final CommandLine cmdLine, Map<String, aProcessor> srcFNExts, final Properties props,
-			Map<String, String> decodedArgs) {
-
-		if ( decodedArgs == null )
-			decodedArgs = new HashMap<>() ;
-
-
-		decodedArgs = decodeCommandLineArg_Processor(cmdLine, props, decodedArgs) ;
-
-		decodedArgs = decodeCommandLineArg_Source(Lists.last(cmdLine.getArgList()), srcFNExts, cmdLine, props, decodedArgs) ;
-
-		decodedArgs = decodeCommandLineArg_Binary(decodedArgs.get("source"), cmdLine, props, decodedArgs) ;
-
-		decodedArgs = decodeCommandLineArg_Format(cmdLine, props, decodedArgs) ;
-
-		decodedArgs = decodeCommandLineArg_List(decodedArgs.get("source"), cmdLine, props, decodedArgs) ;
-
-		decodedArgs = decodeCommandLineArg_XRef(decodedArgs.get("source"), cmdLine, props, decodedArgs) ;
-
-
-		Logger.debug("args: {}", Arrays.asList(decodedArgs)) ;
-
-		return decodedArgs ;
-	}
-
-
-	static Map<String, String> decodeCommandLineArg_Binary(String srcFSpec, CommandLine cmdLine, Properties props, Map<String, String> decodedArgs) {
-
-		if ( cmdLine.hasOption(CommandLineOption_Binary) ) {
-
-			final String bin = StringUtils.trimToEmpty(cmdLine.getOptionValue(CommandLineOption_Binary)) ;
-
-			if ( bin.isEmpty() ) {
-				final String srcDSpec = FilenameUtils.getFullPath(srcFSpec) ;
-				final String srcFNSpec = FilenameUtils.getName(srcFSpec) ;
-				final String[] srcFNParts = srcFNSpec.split("\\.") ;
-
-				decodedArgs.put(CommandLineOption_Binary, srcDSpec + srcFNParts[0] + ".bin") ;
-			}
-			else
-				decodedArgs.put(CommandLineOption_Binary, bin) ;
-		}
-
-
-		return decodedArgs ;
-	}
-
-
-	static Map<String, String> decodeCommandLineArg_Format(CommandLine cmdLine, Properties props, Map<String, String> decodedArgs) {
-
-		String format = StringUtils.trimToEmpty(cmdLine.getOptionValue(CommandLineOption_Format)) ;
-
-		if ( format.isEmpty() )
-			format = props.getProperty("XA.extruder.default") ;
-
-		decodedArgs.put(CommandLineOption_Format, format) ;
-
-
-		return decodedArgs ;
-	}
-
-
-	static Map<String, String> decodeCommandLineArg_List(String srcFSpec, CommandLine cmdLine, Properties props, Map<String, String> decodedArgs) {
-
-		if ( cmdLine.hasOption(CommandLineOption_List) ) {
-
-			final String list = StringUtils.trimToEmpty(cmdLine.getOptionValue(CommandLineOption_List)) ;
-
-			if ( list.isEmpty() ) {
-				final String srcDSpec = FilenameUtils.getFullPath(srcFSpec) ;
-				final String srcFNSpec = FilenameUtils.getName(srcFSpec) ;
-				final String[] srcFNParts = srcFNSpec.split("\\.") ;
-
-				decodedArgs.put(CommandLineOption_List, srcDSpec + srcFNParts[0] + ".lis") ;
-			}
-			else
-				decodedArgs.put(CommandLineOption_List, list) ;
-		}
-
-
-		return decodedArgs ;
-	}
-
-
-	static Map<String, String> decodeCommandLineArg_Processor(CommandLine cmdLine, Properties props, Map<String, String> decodedArgs) {
-
-		String processor = StringUtils.trimToEmpty(cmdLine.getOptionValue(CommandLineOption_Processor)) ;
-
-		decodedArgs.put(CommandLineOption_Processor, processor) ;
-
-
-		return decodedArgs ;
-	}
-
-
-	static Map<String, String> decodeCommandLineArg_Source(String srcFSpec, Map<String, aProcessor> srcFNExts, CommandLine cmdLine, final Properties props,
-			Map<String, String> decodedArgs) {
-
-
-		if ( StringUtils.trimToEmpty(srcFSpec).isEmpty() )
-			throw new IllegalArgumentException("Must specify source file for assembly.") ;
-
-		if ( FilenameUtils.getName(srcFSpec).isEmpty() )
-			throw new IllegalArgumentException("") ;
-
-		if ( FilenameUtils.getBaseName(srcFSpec).isEmpty() )
-			throw new IllegalArgumentException("") ;
-
-		if ( FilenameUtils.getExtension(srcFSpec).isEmpty() )
-			throw new IllegalArgumentException("") ;
-
-
-		if ( !cmdLine.hasOption(CommandLineOption_Processor) ) {
-
-			String srcFNExt = FilenameUtils.getExtension(srcFSpec) ;
-			String processor = (srcFNExts.containsKey(srcFNExt.toLowerCase()) //
-					? srcFNExts.get(srcFNExt.toLowerCase()).listener().getSimpleName() //
-					: props.getProperty("XA.processor.default") //
-			) ;
-
-			decodedArgs.put(CommandLineOption_Processor, processor) ;
-		}
-
-		decodedArgs.put("source", srcFSpec) ;
-
-
-		return decodedArgs ;
-	}
-
-
-	static Map<String, String> decodeCommandLineArg_XRef(String srcFSpec, CommandLine cmdLine, Properties props, Map<String, String> decodedArgs) {
-
-		if ( cmdLine.hasOption(CommandLineOption_XRef) ) {
-			final String list = StringUtils.trimToEmpty(cmdLine.getOptionValue(CommandLineOption_XRef)) ;
-
-			if ( list.isEmpty() ) {
-				final String srcDSpec = FilenameUtils.getFullPath(srcFSpec) ;
-				final String srcFNSpec = FilenameUtils.getName(srcFSpec) ;
-				final String[] srcFNParts = srcFNSpec.split("\\.") ;
-
-				decodedArgs.put(CommandLineOption_XRef, srcDSpec + srcFNParts[0] + ".xref") ;
-			}
-			else
-				decodedArgs.put(CommandLineOption_XRef, list) ;
-		}
-
-
-		return decodedArgs ;
 	}
 }

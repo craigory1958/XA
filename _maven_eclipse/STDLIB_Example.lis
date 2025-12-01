@@ -1,0 +1,69 @@
+         1:                    
+         2:                    ;       Label                   OPC     Operand/Arg
+         3:                    ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;
+         4:                    
+         5:                                               .include     "../misc/STDLIB.def.a65", as=.STDL, list=.list
+  A.01   6:                    
+  A.02   7:                    
+  A.03   8:                    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  A.04   9:                    ;                                                                               ;
+  A.05  10:                    ;                               Standard Library                                ;
+  A.06  11:                    ;                                                                               ;
+  A.07  12:                    ;       Version: v1.0.0                                                         ;
+  A.08  13:                    ;       Author: Craig Gregory (CJG)                                             ;
+  A.09  14:                    ;                                                                               ;
+  A.10  15:                    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  A.11  16:                    
+  A.12  17:                    ;       Label                   OPC     Operand/Arg
+  A.13  18:                    ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;   ;
+  A.14  19:                    
+  A.15  20:                    
+  A.16  21: (0001)                     V1                     .equ     1
+  A.17  22:                    
+  A.18  23:                    
+  A.19  24:                           .DECLARE_TYPE       .macro   type
+  A.20   0:                                                   .ifndef declared
+  A.21   0:                            declared                   .equ ${type}
+  A.22   0:                    
+  A.23   0:                                                       .if ${type} == V1
+  A.24   0:                                                           .include "../misc/STDLIB.lib.a65", as=.STDL
+  A.25   0:                                                       .endif
+  A.26   0:                                                   .endif
+  A.27   0:                                               .endmacro
+  A.28  25:                    
+        26:                    
+        27:                                                   .STDL:.DECLARE_TYPE       .STDL:V1, list=.list
+  A.26  28:                                                   .ifndef declared
+  A.27  29: (0001)                     declared                   .equ 0x01
+  A.28  30:                    
+  A.29  31:                                                       .if 0x01 == V1
+  A.30  32:                                                           .include "../misc/STDLIB.lib.a65", as=.STDL
+  A.31  33:                                                       .endif
+  A.32  34:                                                   .endif
+        35:                    
+        36:                    
+        37:                                                   .STDL:.JSRWAB  $fffe, $ffff
+        38:  0005 00                                   arg1   .byte    $00
+        39:  0006 FF FF                                arg2   .word    $FFFF
+        40:  0008                              ra
+        41:  0008 20 0C 00                                     JSR     mySub
+        42:  000B EA                                           NOP                 ; Execution returns here
+        43:                    
+        44:                    
+        45:  000C                      mySub
+        46:  000C EA                                           NOP                 ; Body of subroutine
+        47:                    
+        48:                                                   .STDL:.RTSI      list=.list
+  C.36  49:                    
+  C.37  50:                                ; Pull return address from stack, use as pointer to actual return address
+  C.38  51:                    
+  C.39  52:  000D 68                                           PLA                 ; Return address pointer low byte
+  C.40  53:  000E 8D 18 00                                     STA     rap
+  C.41  54:  0011 68                                           PLA                 ; Return address pointer high byte
+  C.42  55:  0012 8D 19 00                                     STA     rap +1
+  C.43  56:                    
+  C.44  57:  0015 6C 18 00                                     JMP     [rap]       ; Return from subroutine
+  C.45  58:                    
+  C.46  59:  0018 00 00                                rap    .word    $0000
+  C.47  60:                    
+        61:                    

@@ -91,14 +91,14 @@ public class _Test_decodeCommandLineArg_Source {
 
 
 	@Test
-	public void decodeCommandLineArg_Source() throws IOException, ParseException {
+	public void decodeArg_Source() throws IOException, ParseException {
 
-		CommandLine cmdLine = XA.parseCommandLine(args, XA.CommandLineOptions) ;
-		String srcFSpec = Lists.last(cmdLine.getArgList()) ;
-		Map<String, String> decodedArgs = XA.decodeCommandLineArg_Processor(cmdLine, xa.props, new HashMap<>()) ;
+		CommandLine cmd = XA.parseCommandLine(args, XA.CommandLineOptions) ;
+		String srcFSpec = Lists.last(cmd.getArgList()) ;
+		Map<String, String> decodedArgs = XA.decodeArg_Processor(cmd, xa.props, new HashMap<>()) ;
 
 		try {
-			final Map<String, String> actual = XA.decodeCommandLineArg_Source(srcFSpec, srcFNExts, cmdLine, xa.props, decodedArgs) ;
+			final Map<String, String> actual = XA.decodeArg_Source(srcFSpec, srcFNExts, cmd, xa.props, decodedArgs) ;
 			System.out.println(actual) ;
 			assertEquals(expected, actual) ;
 		}
