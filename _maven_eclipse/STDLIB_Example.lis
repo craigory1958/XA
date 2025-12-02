@@ -42,7 +42,7 @@
   A.32  34:                                                   .endif
         35:                    
         36:                    
-        37:                                                   .STDL:.JSRWAB  $fffe, $ffff
+        37:                                                   .STDL:.JSRWAB    $fffe, $ffff
         38:  0005 00                                   arg1   .byte    $00
         39:  0006 FF FF                                arg2   .word    $FFFF
         40:  0008                              ra
