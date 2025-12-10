@@ -3,12 +3,12 @@
 package xcom.retro.xa ;
 
 
+import static xcom.retro.xa.XA$Args.$Arg_Binary ;
+import static xcom.retro.xa.XA$Args.$Arg_Format ;
+import static xcom.retro.xa.XA$Args.$Arg_List ;
+import static xcom.retro.xa.XA$Args.$Arg_Processor ;
+import static xcom.retro.xa.XA$Args.$Arg_XRef ;
 import static xcom.retro.xa.XA$Args.CommandLineOptions ;
-import static xcom.retro.xa.XA$Args.XA$Arg_Binary ;
-import static xcom.retro.xa.XA$Args.XA$Arg_Format ;
-import static xcom.retro.xa.XA$Args.XA$Arg_List ;
-import static xcom.retro.xa.XA$Args.XA$Arg_Processor ;
-import static xcom.retro.xa.XA$Args.XA$Arg_XRef ;
 import static xcom.retro.xa.XA$Args.decodeCommandLine ;
 import static xcom.retro.xa.XA.AssemblyPhases.Assemble ;
 import static xcom.retro.xa.XA.AssemblyPhases.Extrude ;
@@ -50,7 +50,7 @@ import org.fest.reflect.core.Reflection ;
 import org.reflections.Reflections ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
-import org.slf4j.event.Level ;
+import org.slf4j.spi.LoggingEventBuilder ;
 
 import xcom.retro.xa.api.annotations.aDirective ;
 import xcom.retro.xa.api.annotations.aExtruder ;
@@ -205,7 +205,7 @@ public class XA {
 		actx.phase = Init ;
 
 		{
-			aProcessor processor = (aProcessor) processors.get(actx.decodedArgs.get(XA$Arg_Processor)).getAnnotation(aProcessor.class) ;
+			aProcessor processor = (aProcessor) processors.get(actx.decodedArgs.get($Arg_Processor)).getAnnotation(aProcessor.class) ;
 
 			final Class<? extends Lexer> lexerClass = Reflection.type(processor.lexar().getName()).loadAs(Lexer.class) ;
 			actx.lexer = Reflection.constructor().withParameterTypes(CharStream.class).in(lexerClass).newInstance(CharStreams.fromString("")) ;
@@ -217,7 +217,7 @@ public class XA {
 			this.processor = Reflection.constructor().withParameterTypes(AssemblyContext.class).in(listenerClass).newInstance(actx) ;
 		}
 
-		
+
 		return this ;
 	}
 
@@ -277,7 +277,7 @@ public class XA {
 			actx.source.pop() ;
 		}
 
-		
+
 		return this ;
 	}
 
@@ -296,7 +296,7 @@ public class XA {
 				Reflection.method(actx.statement.assemblyCallbackMethod).in(actx.statement.assemblyCallbackObject).invoke() ;
 		}
 
-		
+
 		return this ;
 	}
 
@@ -313,7 +313,7 @@ public class XA {
 				actx.statement.block.fillBytes(actx.statement.loc, actx.statement.bytes) ;
 		}
 
-		
+
 		return this ;
 	}
 
@@ -322,22 +322,22 @@ public class XA {
 
 		actx.phase = Extrude ;
 
-		if ( actx.cmd.hasOption(XA$Arg_Binary) ) {
+		if ( actx.cmd.hasOption($Arg_Binary) ) {
 
-			final String extruderClassname = extruders.get(actx.decodedArgs.get(XA$Arg_Format)).getName() ;
+			final String extruderClassname = extruders.get(actx.decodedArgs.get($Arg_Format)).getName() ;
 			final Class<? extends iExtruder> extruderClass = Reflection.type(extruderClassname).loadAs(iExtruder.class) ;
 			final iExtruder extruder = Reflection.constructor().in(extruderClass).newInstance() ;
 
-			try ( FileWriter fileWriter = new FileWriter((String) actx.decodedArgs.get(XA$Arg_Binary)); PrintWriter out = new PrintWriter(fileWriter); ) {
+			try ( FileWriter fileWriter = new FileWriter((String) actx.decodedArgs.get($Arg_Binary)); PrintWriter out = new PrintWriter(fileWriter); ) {
 				extruder.extrude(out, actx) ;
 			}
 		}
 
 		Console.info("") ;
-		Console.info((String) actx.decodedArgs.get(XA$Arg_Binary)) ;
-		Console.info(FileUtils.readFileToString(new File((String) actx.decodedArgs.get(XA$Arg_Binary)), Charset.defaultCharset())) ;
+		Console.info((String) actx.decodedArgs.get($Arg_Binary)) ;
+		Console.info(FileUtils.readFileToString(new File((String) actx.decodedArgs.get($Arg_Binary)), Charset.defaultCharset())) ;
 
-		
+
 		return this ;
 	}
 
@@ -346,22 +346,22 @@ public class XA {
 
 		actx.phase = List ;
 
-		if ( actx.cmd.hasOption(XA$Arg_List) ) {
+		if ( actx.cmd.hasOption($Arg_List) ) {
 
 			final String extruderClassname = extruders.get(AssemblyLister.class.getSimpleName()).getName() ;
 			final Class<? extends iExtruder> extruderClass = Reflection.type(extruderClassname).loadAs(iExtruder.class) ;
 			final iExtruder lister = Reflection.constructor().in(extruderClass).newInstance() ;
 
-			try ( FileWriter fileWriter = new FileWriter((String) actx.decodedArgs.get(XA$Arg_List)); PrintWriter out = new PrintWriter(fileWriter); ) {
+			try ( FileWriter fileWriter = new FileWriter((String) actx.decodedArgs.get($Arg_List)); PrintWriter out = new PrintWriter(fileWriter); ) {
 				lister.extrude(out, actx) ;
 			}
 
 			Console.info("") ;
-			Console.info((String) actx.decodedArgs.get(XA$Arg_List)) ;
-			Console.info(FileUtils.readFileToString(new File((String) actx.decodedArgs.get(XA$Arg_List)), Charset.defaultCharset())) ;
+			Console.info((String) actx.decodedArgs.get($Arg_List)) ;
+			Console.info(FileUtils.readFileToString(new File((String) actx.decodedArgs.get($Arg_List)), Charset.defaultCharset())) ;
 		}
 
-		
+
 		return this ;
 	}
 
@@ -370,22 +370,22 @@ public class XA {
 
 		actx.phase = XRef ;
 
-		if ( actx.cmd.hasOption(XA$Arg_XRef) ) {
+		if ( actx.cmd.hasOption($Arg_XRef) ) {
 
 			final String extruderClassname = extruders.get(XRefLister.class.getSimpleName()).getName() ;
 			final Class<? extends iExtruder> extruderClass = Reflection.type(extruderClassname).loadAs(iExtruder.class) ;
 			final iExtruder lister = Reflection.constructor().in(extruderClass).newInstance() ;
 
-			try ( FileWriter fileWriter = new FileWriter((String) actx.decodedArgs.get(XA$Arg_XRef)); PrintWriter out = new PrintWriter(fileWriter); ) {
+			try ( FileWriter fileWriter = new FileWriter((String) actx.decodedArgs.get($Arg_XRef)); PrintWriter out = new PrintWriter(fileWriter); ) {
 				lister.extrude(out, actx) ;
 			}
 
 			Console.info("") ;
-			Console.info((String) actx.decodedArgs.get(XA$Arg_XRef)) ;
-			Console.info(FileUtils.readFileToString(new File((String) actx.decodedArgs.get(XA$Arg_XRef)), Charset.defaultCharset())) ;
+			Console.info((String) actx.decodedArgs.get($Arg_XRef)) ;
+			Console.info(FileUtils.readFileToString(new File((String) actx.decodedArgs.get($Arg_XRef)), Charset.defaultCharset())) ;
 		}
 
-		
+
 		return this ;
 	}
 
@@ -424,41 +424,43 @@ public class XA {
 		final XA $ = new XA() ;
 		$.actx.cmd = cmd ;
 		$.actx.$args = $args ;
+		$.actx.decodedArgs = decoded ;
 		$.props = props ;
 
 		{
 			final String path = $.props.getProperty("XA.processor.scan.classpath") ;
-			$.processors = scanAndLoadByAnnotationType(path, aProcessor.class.getName(), $.processors, $.actx) ;
+			$.processors = scanAndLoadByAnnotationType(path, aProcessor.class.getName(), $.processors, $.actx.$args.getEventLogger("init")) ;
 
-			$args.getEventLogger("init").log("processors: {}", $.processors) ;
+			$.actx.$args.getEventLogger("init").log("processors: {}", $.processors) ;
 		}
 
 		{
 			final String path = $.props.getProperty("XA.extruder.scan.classpath") ;
-			$.extruders = scanAndLoadByAnnotationType(path, aExtruder.class.getName(), $.extruders, $.actx) ;
+			$.extruders = scanAndLoadByAnnotationType(path, aExtruder.class.getName(), $.extruders, $.actx.$args.getEventLogger("init")) ;
 
-			$args.getEventLogger("init").log("extruders: {}", $.extruders) ;
+			$.actx.$args.getEventLogger("init").log("extruders: {}", $.extruders) ;
 		}
 
 		{
 			final String path = $.props.getProperty("XA.directive.scan.classpath") ;
-			$.actx.directives = scanAndInstantiateByAnnotationType(path, aDirective.class.getName(), iDirective.class, $.actx.directives, $.actx) ;
+			$.actx.directives = scanAndInstantiateByAnnotationType(path, aDirective.class.getName(), iDirective.class, $.actx.directives, $.actx,
+					$.actx.$args.getEventLogger("init")) ;
 
-			$args.getEventLogger("init").log("directives: {}", $.actx.directives) ;
+			$.actx.$args.getEventLogger("init").log("directives: {}", $.actx.directives) ;
 		}
 
 
 		Map<String, aProcessor> srcFNExts = buildSourceFilenameExtensions($.processors) ;
-		$args.getEventLogger("init").log("srcFNExts: {}", srcFNExts) ;
+		$.actx.$args.getEventLogger("init").log("srcFNExts: {}", srcFNExts) ;
 
 
 		// Decode command line arguments ...
 
-		$.actx.decodedArgs = decodeCommandLine($.actx.cmd, srcFNExts, $.props, decoded) ;
-		$args.getEventLogger("init").log("decodedArgs: {}", $.actx.decodedArgs) ;
+		$.actx.decodedArgs = decodeCommandLine($.actx.cmd, srcFNExts, $.props, $.actx.decodedArgs) ;
+		$.actx.$args.getEventLogger("init").log("decodedArgs: {}", $.actx.decodedArgs) ;
 
 
-		XA$Args.printToolUsage(AppUsage, AppDesc, $.actx.decodedArgs(), Console) ;
+		CLArgs.printToolUsage(AppUsage, AppDesc, $.actx.decodedArgs(), Console) ;
 
 
 		//
@@ -484,10 +486,10 @@ public class XA {
 	}
 
 
-	static <T> Map<String, T> scanAndInstantiateByAnnotationType(final String path, final String annotation, final Class<T> clazz,
-			Map<String, T> annotations, final AssemblyContext actx) {
+	static <T> Map<String, T> scanAndInstantiateByAnnotationType(final String path, final String annotation, final Class<T> clazz, Map<String, T> annotations,
+			final AssemblyContext actx, final LoggingEventBuilder logger) {
 
-		actx.$args.getEventLogger("init").log("Scanning classpath '{}.*' for {} ...", path, annotation) ;
+		logger.log("Scanning classpath '{}.*' for {} ...", path, annotation) ;
 
 		if ( annotations == null )
 			annotations = new HashMap<>() ;
@@ -495,7 +497,7 @@ public class XA {
 		try {
 			@SuppressWarnings("unchecked")
 			final Set<Class<?>> _annotations = new Reflections(path).getTypesAnnotatedWith((Class<? extends Annotation>) Class.forName(annotation)) ;
-			actx.$args.getEventLogger("init").log("found {} annotations in classpath: |{}|", _annotations.size(), _annotations) ;
+			logger.log("found {} annotations in classpath: |{}|", _annotations.size(), _annotations) ;
 
 			for ( final Class<?> _annotation : _annotations )
 				for ( final Annotation a : _annotation.getAnnotations() )
@@ -520,16 +522,17 @@ public class XA {
 
 
 	@SuppressWarnings("unchecked")
-	static <T> Map<String, T> scanAndLoadByAnnotationType(final String path, final String annotation, Map<String, T> annotations, final AssemblyContext actx) {
+	static <T> Map<String, T> scanAndLoadByAnnotationType(final String path, final String annotation, Map<String, T> annotations,
+			final LoggingEventBuilder logger) {
 
-		actx.$args.getEventLogger("init").log("Scanning classpath '{}.*' for {} ...", path, annotation) ;
+		logger.log("Scanning classpath '{}.*' for {} ...", path, annotation) ;
 
 		if ( annotations == null )
 			annotations = new HashMap<>() ;
 
 		try {
 			final Set<Class<?>> _annotations = new Reflections(path).getTypesAnnotatedWith((Class<? extends Annotation>) Class.forName(annotation)) ;
-			actx.$args.getEventLogger("init").log("found {} annotations in classpath: |{}|", _annotations.size(), _annotations) ;
+			logger.log("found {} annotations in classpath: |{}|", _annotations.size(), _annotations) ;
 
 			for ( final Class<?> _annotation : _annotations )
 				for ( final Annotation a : _annotation.getAnnotations() )

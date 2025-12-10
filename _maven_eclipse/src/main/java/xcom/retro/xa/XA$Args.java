@@ -28,29 +28,29 @@ public class XA$Args extends Tool$Args {
 	private static final Logger Logger = LoggerFactory.getLogger(XA$Args.class) ;
 
 
-	public static final String XA$Arg_Binary = "b" ;
-	public static final String XA$ArgLong_Binary = "bin" ;
-	public static final Option XA$ArgOption_Binary = Option.builder(XA$Arg_Binary).argName("file").longOpt(XA$ArgLong_Binary).hasArg().optionalArg(true)
+	public static final String $Arg_Binary = "b" ;
+	public static final String $ArgLong_Binary = "bin" ;
+	public static final Option $ArgOption_Binary = Option.builder($Arg_Binary).argName("file").longOpt($ArgLong_Binary).hasArg().optionalArg(true)
 			.argName("[fnSpec]").desc("generate assembly binary").build() ;
 
-	public static final String XA$Arg_Format = "f" ;
-	public static final String XA$ArgLong_Format = "format" ;
-	public static final Option XA$ArgOption_Format = Option.builder(XA$Arg_Format).longOpt(XA$ArgLong_Format).argName("format").hasArg().optionalArg(false)
+	public static final String $Arg_Format = "f" ;
+	public static final String $ArgLong_Format = "format" ;
+	public static final Option $ArgOption_Format = Option.builder($Arg_Format).longOpt($ArgLong_Format).argName("format").hasArg().optionalArg(false)
 			.argName("{format}").desc("specify binray format").build() ;
 
-	public static final String XA$Arg_List = "l" ;
-	public static final String XA$ArgLong_List = "list" ;
-	public static final Option XA$ArgOption_List = Option.builder(XA$Arg_List).longOpt(XA$ArgLong_List).argName("file").hasArg().optionalArg(true)
+	public static final String $Arg_List = "l" ;
+	public static final String $ArgLong_List = "list" ;
+	public static final Option $ArgOption_List = Option.builder($Arg_List).longOpt($ArgLong_List).argName("file").hasArg().optionalArg(true)
 			.argName("[fnSpec]").desc("generate assembly listing").build() ;
 
-	public static final String XA$Arg_XRef = "x" ;
-	public static final String XA$ArgLong_XRef = "xref" ;
-	public static final Option XA$ArgOption_XRef = Option.builder(XA$Arg_XRef).argName("file").longOpt(XA$ArgLong_XRef).hasArg().optionalArg(true)
+	public static final String $Arg_XRef = "x" ;
+	public static final String $ArgLong_XRef = "xref" ;
+	public static final Option $ArgOption_XRef = Option.builder($Arg_XRef).argName("file").longOpt($ArgLong_XRef).hasArg().optionalArg(true)
 			.argName("[fnSpec]").desc("generate cross reference listing").build() ;
 
-	public static final String XA$Arg_Processor = "p" ;
-	public static final String XA$ArgLong_Processor = "proc" ;
-	public static final Option XA$ArgOption_Processor = Option.builder(XA$Arg_Processor).longOpt(XA$ArgLong_Processor).hasArg().optionalArg(false)
+	public static final String $Arg_Processor = "p" ;
+	public static final String $ArgLong_Processor = "proc" ;
+	public static final Option $ArgOption_Processor = Option.builder($Arg_Processor).longOpt($ArgLong_Processor).hasArg().optionalArg(false)
 			.argName("{processor}").desc("specify processor").build() ;
 
 
@@ -60,12 +60,12 @@ public class XA$Args extends Tool$Args {
 		CommandLineOptions.addOption(CLArgOption_Log) ;
 		CommandLineOptions.addOption(CLArgOption_Version) ;
 
-		CommandLineOptions.addOption(XA$ArgOption_Binary) ;
-		CommandLineOptions.addOption(XA$ArgOption_Format) ;
+		CommandLineOptions.addOption($ArgOption_Binary) ;
+		CommandLineOptions.addOption($ArgOption_Format) ;
 		CommandLineOptions.addOption(Tool$ArgOption_Library) ;
-		CommandLineOptions.addOption(XA$ArgOption_List) ;
-		CommandLineOptions.addOption(XA$ArgOption_XRef) ;
-		CommandLineOptions.addOption(XA$ArgOption_Processor) ;
+		CommandLineOptions.addOption($ArgOption_List) ;
+		CommandLineOptions.addOption($ArgOption_XRef) ;
+		CommandLineOptions.addOption($ArgOption_Processor) ;
 	}
 
 
@@ -106,19 +106,19 @@ public class XA$Args extends Tool$Args {
 
 	static Map<String, Object> decodeArg_Binary(String srcFSpec, CommandLine cmd, Properties props, Map<String, Object> decodedArgs) {
 
-		if ( cmd.hasOption(XA$Arg_Binary) ) {
+		if ( cmd.hasOption($Arg_Binary) ) {
 
-			final String bin = StringUtils.trimToEmpty(cmd.getOptionValue(XA$Arg_Binary)) ;
+			final String bin = StringUtils.trimToEmpty(cmd.getOptionValue($Arg_Binary)) ;
 
 			if ( bin.isEmpty() ) {
 				final String srcDSpec = FilenameUtils.getFullPath(srcFSpec) ;
 				final String srcFNSpec = FilenameUtils.getName(srcFSpec) ;
 				final String[] srcFNParts = srcFNSpec.split("\\.") ;
 
-				decodedArgs.put(XA$Arg_Binary, srcDSpec + srcFNParts[0] + ".bin") ;
+				decodedArgs.put($Arg_Binary, srcDSpec + srcFNParts[0] + ".bin") ;
 			}
 			else
-				decodedArgs.put(XA$Arg_Binary, bin) ;
+				decodedArgs.put($Arg_Binary, bin) ;
 		}
 
 
@@ -128,12 +128,12 @@ public class XA$Args extends Tool$Args {
 
 	static Map<String, Object> decodeArg_Format(CommandLine cmd, Properties props, Map<String, Object> decodedArgs) {
 
-		String format = StringUtils.trimToEmpty(cmd.getOptionValue(XA$Arg_Format)) ;
+		String format = StringUtils.trimToEmpty(cmd.getOptionValue($Arg_Format)) ;
 
 		if ( format.isEmpty() )
 			format = props.getProperty("XA.extruder.default") ;
 
-		decodedArgs.put(XA$Arg_Format, format) ;
+		decodedArgs.put($Arg_Format, format) ;
 
 
 		return decodedArgs ;
@@ -142,19 +142,19 @@ public class XA$Args extends Tool$Args {
 
 	static Map<String, Object> decodeArg_List(String srcFSpec, CommandLine cmd, Properties props, Map<String, Object> decodedArgs) {
 
-		if ( cmd.hasOption(XA$Arg_List) ) {
+		if ( cmd.hasOption($Arg_List) ) {
 
-			final String list = StringUtils.trimToEmpty(cmd.getOptionValue(XA$Arg_List)) ;
+			final String list = StringUtils.trimToEmpty(cmd.getOptionValue($Arg_List)) ;
 
 			if ( list.isEmpty() ) {
 				final String srcDSpec = FilenameUtils.getFullPath(srcFSpec) ;
 				final String srcFNSpec = FilenameUtils.getName(srcFSpec) ;
 				final String[] srcFNParts = srcFNSpec.split("\\.") ;
 
-				decodedArgs.put(XA$Arg_List, srcDSpec + srcFNParts[0] + ".lis") ;
+				decodedArgs.put($Arg_List, srcDSpec + srcFNParts[0] + ".lis") ;
 			}
 			else
-				decodedArgs.put(XA$Arg_List, list) ;
+				decodedArgs.put($Arg_List, list) ;
 		}
 
 
@@ -164,9 +164,9 @@ public class XA$Args extends Tool$Args {
 
 	static Map<String, Object> decodeArg_Processor(CommandLine cmd, Properties props, Map<String, Object> decodedArgs) {
 
-		String processor = StringUtils.trimToEmpty(cmd.getOptionValue(XA$Arg_Processor)) ;
+		String processor = StringUtils.trimToEmpty(cmd.getOptionValue($Arg_Processor)) ;
 
-		decodedArgs.put(XA$Arg_Processor, processor) ;
+		decodedArgs.put($Arg_Processor, processor) ;
 
 
 		return decodedArgs ;
@@ -190,7 +190,7 @@ public class XA$Args extends Tool$Args {
 			throw new IllegalArgumentException("") ;
 
 
-		if ( !cmd.hasOption(XA$Arg_Processor) ) {
+		if ( !cmd.hasOption($Arg_Processor) ) {
 
 			String srcFNExt = FilenameUtils.getExtension(srcFSpec) ;
 			String processor = (srcFNExts.containsKey(srcFNExt.toLowerCase()) //
@@ -198,7 +198,7 @@ public class XA$Args extends Tool$Args {
 					: props.getProperty("XA.processor.default") //
 			) ;
 
-			decodedArgs.put(XA$Arg_Processor, processor) ;
+			decodedArgs.put($Arg_Processor, processor) ;
 		}
 
 		decodedArgs.put("source", srcFSpec) ;
@@ -210,18 +210,18 @@ public class XA$Args extends Tool$Args {
 
 	static Map<String, Object> decodeArg_XRef(String srcFSpec, CommandLine cmd, Properties props, Map<String, Object> decodedArgs) {
 
-		if ( cmd.hasOption(XA$Arg_XRef) ) {
-			final String list = StringUtils.trimToEmpty(cmd.getOptionValue(XA$Arg_XRef)) ;
+		if ( cmd.hasOption($Arg_XRef) ) {
+			final String list = StringUtils.trimToEmpty(cmd.getOptionValue($Arg_XRef)) ;
 
 			if ( list.isEmpty() ) {
 				final String srcDSpec = FilenameUtils.getFullPath(srcFSpec) ;
 				final String srcFNSpec = FilenameUtils.getName(srcFSpec) ;
 				final String[] srcFNParts = srcFNSpec.split("\\.") ;
 
-				decodedArgs.put(XA$Arg_XRef, srcDSpec + srcFNParts[0] + ".xref") ;
+				decodedArgs.put($Arg_XRef, srcDSpec + srcFNParts[0] + ".xref") ;
 			}
 			else
-				decodedArgs.put(XA$Arg_XRef, list) ;
+				decodedArgs.put($Arg_XRef, list) ;
 		}
 
 
