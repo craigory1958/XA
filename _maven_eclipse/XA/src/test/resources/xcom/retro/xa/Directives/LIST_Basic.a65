@@ -1,0 +1,25 @@
+
+NXTEL    LDA    [$30],Y     ; FETCH ELEMENT
+         INY
+         CMP    [$30],Y     ; IS IT LARGER THAN THE NEXT ELEMENT?
+         BCC    CHKEND
+         .nolist
+         BEQ    CHKEND
+                            ; YES. EXCHANGE ELEMENTS IN MEMORY
+         PHA                ; BY SAVING LOW BYTE ON STACK.
+         LDA    [$30],Y     ; THEN GET HIGH BYTE AND
+         DEY                ; STORE IT AT LOW ADDRESS
+         STA  	[$30],Y
+         PLA                ; PULL LOW BYTE FROM STACK
+         INY                ; AND STORE IT AT HIGH ADDRESS
+         STA  	[$30],Y
+         LDA    #$FF        ; TURN EXCHANGE FLAG ON (= -1)
+         STA    $32
+		 
+		 .list
+CHKEND   DEX                ; END OF LIST?
+         BNE    NXTEL       ; NO. FETCH NEXT ELEMENT
+         BIT    $32         ; YES. EXCHANGE FLAG STILL OFF?
+         BMI    CHKEND      ; NO. GO THROUGH LIST AGAIN
+		 
+         RTS                ; YES. LIST IS NOW ORDERED

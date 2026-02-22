@@ -1,0 +1,6 @@
+abc	.equ	2
+.abcM2	.macro
+		.endmacro
+		.abcM2
+		LDA #abc
+	

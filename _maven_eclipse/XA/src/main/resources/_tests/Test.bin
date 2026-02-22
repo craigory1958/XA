@@ -1,0 +1,13 @@
+0xFF, 0xFF, 0xFF, 0xFF, //  0200 FF FF FF FF  	.byte 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+0xFF,
+0x18,                   //  0205 18                CLC
+0x90, 0xFE,             //  0206 90 FE        HERE BCC HERE
+0xEA,                   //  0208 EA                NOP
+0xEA,                   //  0209 EA                NOP
+0xA9, 0x0A,             //  020A A9 0A        abc  LDA  #abc
+0xA9, 0x0C,             //  020C A9 0C        abc  LDA  #abc
+0xA9, 0x0C,             //  020E A9 0C             LDA #ghi
+0xA9, 0x0A,             //  0210 A9 0A             LDA #lmn
+0xA9, 0x0E,             //  0212 A9 0E             LDA #.xyz:def
+0xA9, 0x0A,             //  0214 A9 0A             LDA #.def:abc
+0xA9, 0x0C,             //  0216 A9 0C             LDA #.xyz:abc

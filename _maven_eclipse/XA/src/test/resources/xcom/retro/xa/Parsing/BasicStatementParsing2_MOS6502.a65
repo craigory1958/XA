@@ -1,0 +1,11 @@
+xyz1
+xyz2	NOP
+		LDA		#0xFF
+xyz3	LDA		xyz1
+		NOP
+	
+; comment
+xyz4	LDA		xyz4 ; comment
+
+xyz5   .equ	0x12
+		LDA		xyz5

@@ -1,0 +1,1217 @@
+           1:                    ;
+           2:                    ;
+           3:                    ;              666666  555555  333333  000000
+           4:                    ;              6       5            3  0    0
+           5:                    ;              6       5            3  0    0
+           6:                    ;              666666  555555  333333  0    0
+           7:                    ;              6    6       5       3  0    0
+           8:                    ;              6    6       5       3  0    0
+           9:                    ;              666666  666666  666666  000000
+          10:                    ;
+          11:                    ;
+          12:                    ;
+          13:                    ;                      000000  000000  333333
+          14:                    ;                      0    0  0    0       3
+          15:                    ;              ------  0    0  0    0       3
+          16:                    ;              ------  0    0  0    0  333333
+          17:                    ;              ------  0    0  0    0       3
+          18:                    ;                      0    0  0    0       3
+          19:                    ;                      000000  000000  333333
+          20:                    ;
+          21:                    ;
+          22:                    ;
+          23:                    ;
+          24:                    ;
+          25:                    ;      COPYRIGHT
+          26:                    ;      MOS TECHNOLOGY, INC
+          27:                    ;      DATE: OCT 18, 1975 REV-D
+          28:                    ;
+          29:                    ;
+          30:                    ;
+          31:                    ;      6530-003 I.C. IS AN AUDIO CASSETT TAPE
+          32:                    ;      RECORDER ENTENSION OF THE BASIC
+          33:                    ;      KIM MONITOR
+          34:                    ;
+          35:                    ;      IT FEATURES TWO BASIC ROUTINES
+          36:                    ;      LOADT-LOAD MEM FROM AUDIO TAPE
+          37:                    ;      DUMPT-STOR MEM ONTO AUDIO TAPE
+          38:                    ;
+          39:                    ;      LOADT
+          40:                    ;        ID=00     IGNORE ID
+          41:                    ;        ID=FF     IGN. ID USE SA FOR START ADDR
+          42:                    ;        ID=01-FE  IGN.ID USE ADDRESS ON TAPE
+          43:                    ;
+          44:                    ;      DUMPT
+          45:                    ;        ID=00     SHOULD NOT BE USED
+          46:                    ;        ID=FF     SHOULD NOT BE USED
+          47:                    ;        ID=01-FE  NORMAL ID RANGE
+          48:                    ;        SAL       LSB STARTING ADDRESS OF PROGRAM
+          49:                    ;        SAH       MSB
+          50:                    ;        EAL       ENDING ADDRESS OF PROGRAM
+          51:                    ;        EAH       MSB
+          52:                    ;
+          53:                    ;
+          54:                    ;
+          55:                    ;       EQUATES
+          56:                    ;       SET UP FOR 6530-002 I/O
+          57:                    ;
+          58:                    SAD     .equ $1740          ; 6530 A DATA
+          59:                    PADD    .equ $1741          ; 6530 A DATA DIRECTION
+          60:                    SBD     .equ $1742          ; 6530 B DATA
+          61:                    PBDD    .equ $1743          ; 6530 B DATA DIRECTION
+          62:                    CLK1T   .equ $1744          ; DIV BY 1 TIME
+          63:                    CLK8T   .equ $1745          ; DIV BY 8 TIME
+          64:                    CLK64T  .equ $1746          ; DIV BY 64 TIME
+          65:                    CLKKT   .equ $1747          ; DIV BY 1024 TIME
+          66:                    CLKRDI  .equ $1747          ; READ TIME OUT BIT
+          67:                    CLKRDT  .equ $1746          ; READ TIME
+          68:                    ;
+          69:                            .org $00EF
+          70:                    ;       MPU REG.  SAVX AREA IN PAGE 0
+          71:                    ;
+          72:                    PCL     .byte $00           ; PROGRAM CNT LOW
+          73:                    PCH     .byte $00           ; PROGRAM CNT HI
+          74:                    PREG    .byte $00           ; CURRENT STATUS REG
+          75:                    SPUSER  .byte $00           ; CURRENT STACK POINTER
+          76:                    ACC     .byte $00           ; ACCUMULATOR
+          77:                    YREG    .byte $00           ; Y INDEX
+          78:                    XREG    .byte $00           ; X INDEX
+          79:                    ;
+          80:                    ;       KIM FIXED AREA IN PAGE 0
+          81:                    ;
+          82:                    CHKHI   .byte $00
+          83:                    CHKSUM  .byte $00
+          84:                    INL     .byte $00           ; INPUT BUFFER
+          85:                    INH     .byte $00           ; INPUT BUFFER
+          86:                    POINTL  .byte $00           ; LSB OF OPEN CELL
+          87:                    POINTH  .byte $00           ; MSB OF OPEN CELL
+          88:                    TEMP    .byte $00
+          89:                    TMPX    .byte $00
+          90:                    CHAR    .byte $00
+          91:                    MODE    .byte $00
+          92:                    ;
+          93:                    ;       KIM FIXED AREA IN PAGE 23
+          94:                    ;
+          95:                            .org $17E7
+          96:                    CHKL    .byte $00
+          97:                    CHKH    .byte $00           ; CHKSUM
+          98:                    SAVX    .byte $00, $00, $00
+          99:                    VEB     .byte $00, $00, $00, $00, $00, $00           ; VOLATILE EXECUTION BLOCK
+         100:                    CNTL30  .byte $00           ; TTY DELAY
+         101:                    CNTH30  .byte $00           ; TTY DELAY
+         102:                    TIMH    .byte $00
+         103:                    SAL     .byte $00           ; LOW STARTING ADDRESS
+         104:                    SAH     .byte $00           ; HI STARTING ADDRESS
+         105:                    EAL     .byte $00           ; LOW ENDING ADDRESS
+         106:                    EAH     .byte $00           ; HI ENDING ADDRESS
+         107:                    ID      .byte $00           ; TAPE PROGRAM ID NUMBER
+         108:                    ;
+         109:                    ;       INTERRUPT VECTORS
+         110:                    ;
+         111:                    NMIV    .byte $00, $00           ; STOP VECTOR (STOP=1C00)
+         112:                    RSTV    .byte $00, $00           ; RST VECTOR
+         113:                    IRQV    .byte $00, $00           ; IRQ VECTOR (BRK= 1C00)
+         114:                    ;
+         115:                    ;
+         116:                            .org $1800
+         117:                    ;
+         118:                    ;       INIT VOLATILE EXECUTION BLOCK
+         119:                    ;       DUMP MEM TO TAPE
+         120:                    ;
+         121:                    DUMPT   LDA   #$AD      ; LOAD ABSOLUTE INST
+         122:                            STA   VEB
+         123:                            JSR   INTVEB
+         124:                    ;
+         125:                            LDA   #$27      ; TURN OFF DATAIN PB5
+         126:                            STA   SBD
+         127:                            LDA   #$BF      ; CONVERT PB7 TO OUTPUT
+         128:                            STA   PBDD
+         129:                    ;
+         130:                            LDX   #$64      ; 100 CHARS
+         131:                    DUMPT1  LDA   #$16      ; SYNC CHAR'S
+         132:                            JSR   OUTCHT
+         133:                            DEX
+         134:                            BNE   DUMPT1
+         135:                    ;
+         136:                    ;
+         137:                            LDA   #$2A      ; START CHAR
+         138:                            JSR   OUTCHT
+         139:                    ;
+         140:                            LDA   ID         ; OUTPUT ID
+         141:                            JSR   OUTBT
+         142:                    ;
+         143:                            LDA   SAL       ; OUTPUT STARTING
+         144:                            JSR   OUTBTC    ; ADDRESS
+         145:                            LDA   SAH
+         146:                            JSR   OUTBTC
+         147:                    ;
+         148:                    DUMPT2  LDA   VEB+1     ; CHECK FOR LAST
+         149:                            CMP   EAL       ; DATA BYTE
+         150:                            LDA   VEB+2
+         151:                            SBC   EAH
+         152:                            BCC   DUMPT4
+         153:                    ;
+         154:                            LDA   #'/      ; OUTPUT END OF DATA CHAR
+         155:                            JSR   OUTCHT
+         156:                            LDA   CHKL      ; LAST BYTE HAS BEEN
+         157:                            JSR   OUTBT     ; OUT PUT   NOW OUTPUT
+         158:                            LDA   CHKH      ; CHKSUM
+         159:                            JSR   OUTBT
+         160:                    ;
+         161:                    ;
+         162:                            LDX   #$02      ; 2 CHAR'S
+         163:                    DUMPT3  LDA   #$04      ; EOT CHAR
+         164:                            JSR   OUTCHT
+         165:                            DEX
+         166:                            BNE   DUMPT3
+         167:                    ;
+         168:                            LDA   #$00      ; DISPLAY 0000
+         169:                            STA   POINTL    ; FOR NORMAL EXIT
+         170:                            STA   POINTH
+         171:                            JMP   START
+         172:                    ;
+         173:                    DUMPT4  JSR   VEB       ; DATA BYTE OUTPUT
+         174:                            JSR   OUTBTC
+         175:                    ;
+         176:                            JSR   INCVEB
+         177:                            JMP   DUMPT2
+         178:                    ;
+         179:                    ;       LOAD MEMORY FROM TAPE
+         180:                    ;
+         181:                    ;
+         182:                    TAB     .WORD LOAD12
+         183:                    LOADT   LDA   #$8D      ; INIT VOLATILE EXECUTION
+         184:                            STA   VEB       ; BLOCK WITH STA ABS.
+         185:                            JSR   INTVEB
+         186:                    ;
+         187:                            LDA   #$4C      ; JUMP TYPE RTRN
+         188:                            STA   VEB+3
+         189:                            LDA   TAB
+         190:                            STA   VEB+4
+         191:                            LDA   TAB+1
+         192:                            STA   VEB+5
+         193:                    ;
+         194:                            LDA   #$07      ; RESET PB5=0 (DATA-IN)
+         195:                            STA   SBD
+         196:                    ;
+         197:                    SYNC    LDA   #$FF      ; CLEAR SAVX FOR SYNC CHAR
+         198:                            STA   SAVX
+         199:                    ;
+         200:                    SYNC1   JSR   RDBIT     ; GET A BIT
+         201:                            LSR   SAVX      ; SHIFT BIT INTO CHAR
+         202:                            ORA   SAVX
+         203:                            STA   SAVX
+         204:                            LDA   SAVX      ; GET NEW CHAR
+         205:                            CMP   #$16      ; SYNC CHAR
+         206:                            BNE   SYNC1
+         207:                    ;
+         208:                            LDX   #$0A      ; TEST FOR 10 SYNC CHARS
+         209:                    SYNC2   JSR   RDCHT
+         210:                            CMP   #$16
+         211:                            BNE   SYNC      ; IF NOT 10 CHAR, RE-SYNC
+         212:                            DEX
+         213:                            BNE   SYNC2
+         214:                    ;
+         215:                    ;
+         216:                    LOADT4  JSR   RDCHT     ; LOOK FOR START OF
+         217:                            CMP   #$2A      ; DATA CHAR
+         218:                            BEQ   LOAD11
+         219:                            CMP   #$16      ; IF NOT, SHOULD BE SYN
+         220:                            BNE   SYNC
+         221:                            BEQ   LOADT4
+         222:                    ;
+         223:                    LOAD11  JSR   RDBYT     ; READ ID FROM TAPE
+         224:                            CMP   ID        ; COMPARE WITH REQUESTED ID
+         225:                            BEQ   LOADT5
+         226:                            LDA   ID        ; DEFAULT 00, READ RECORD
+         227:                            CMP   #$00      ; ANYWAY
+         228:                            BEQ   LOADT5
+         229:                            CMP   #$FF      ; DEFAULT FF, IGNORE SA ON
+         230:                            BEQ   LOADT6    ; TAPE
+         231:                            BNE   LOADT
+         232:                    ;
+         233:                    LOADT5  JSR   RDBYT     ; GET SA FROM TAPE
+         234:                            JSR   CHKT
+         235:                            STA   VEB+1     ; SAVX IN VEB+1,2
+         236:                            JSR   RDBYT
+         237:                            JSR   CHKT
+         238:                            STA   VEB+2
+         239:                            JMP   LOADT7
+         240:                    ;
+         241:                    LOADT6  JSR   RDBYT     ; GET SA BUT IGNORE
+         242:                            JSR   CHKT
+         243:                            JSR   RDBYT
+         244:                            JSR   CHKT
+         245:                    ;
+         246:                    ;
+         247:                    LOADT7  LDX   #$02      ; GET 2 CHARS
+         248:                    LOAD13  JSR   RDCHT     ; GET CHAR (X)
+         249:                            CMP   #$2F      ; LOOK FOR LAST CHAR
+         250:                            BEQ   LOADT8
+         251:                            JSR   PACKT     ; CONVERT TO HEX
+         252:                            BNE   LOADT9    ; Y=1 NON-HEX CHAR
+         253:                            DEX
+         254:                            BNE   LOAD13
+         255:                    ;
+         256:                            JSR   CHKT      ; COMPUTE CHECKSUM
+         257:                            JMP   VEB       ; SAVX DATA IN MEMORY
+         258:                    LOAD12  JSR   INCVEB    ; INCREMENT DATA POINTER
+         259:                            JMP   LOADT7
+         260:                    ;
+         261:                    LOADT8  JSR   RDBYT     ; END OF DATA, COMPARE CHKSUM
+         262:                            CMP   CHKL
+         263:                            BNE   LOADT9
+         264:                            JSR   RDBYT
+         265:                            CMP   CHKH
+         266:                            BNE   LOADT9
+         267:                            LDA   #$00      ; NORMAL EXIT
+         268:                            BEQ   LOAD10
+         269:                    ;
+         270:                    LOADT9  LDA   #$FF      ; ERROR EXIT
+         271:                    LOAD10  STA   POINTL
+         272:                            STA   POINTH
+         273:                            JMP   START
+         274:                    ;
+         275:                    ;
+         276:                    ;
+         277:                    ;       SUBROUTINES FOLLOW
+         278:                    ;
+         279:                    ;       SUB TO MOVE SA TO VEB+1,2
+         280:                    ;
+         281:                    INTVEB  LDA   SAL       ; MOVE SA TO VEB+1,2
+         282:                            STA   VEB+1
+         283:                            LDA   SAH
+         284:                            STA   VEB+2
+         285:                            LDA   #$60      ; RTS INST
+         286:                            STA   VEB+3
+         287:                            LDA   #$00      ; CLEAR CHKSUM AREA
+         288:                            STA   CHKL
+         289:                            STA   CHKH
+         290:                            RTS
+         291:                    ;
+         292:                    ;       COMPUTE CHKSUM FOR TAPE LOAD
+         293:                    ;       RTN USES Y TO SAVEX A
+         294:                    ;
+         295:                    CHKT    TAY
+         296:                            CLC
+         297:                            ADC   CHKL
+         298:                            STA   CHKL
+         299:                            LDA   CHKH
+         300:                            ADC   #$00
+         301:                            STA   CHKH
+         302:                            TYA
+         303:                            RTS
+         304:                    ;
+         305:                    ;       OUTPUT ONE BYTE USE Y
+         306:                    ;       TO SAVX BYTE
+         307:                    ;
+         308:                    OUTBTC  JSR   CHKT      ; COMPARE CHKSUM
+         309:                    OUTBT   TAY             ; SAVX DATA BYTE
+         310:                            LSR   A         ; SHIFT OFF LSD
+         311:                            LSR   A
+         312:                            LSR   A
+         313:                            LSR   A
+         314:                            JSR   HEXOUT    ; OUTPUT MSD
+         315:                            TYA
+         316:                            JSR   HEXOUT    ; OUTPUT LSD
+         317:                            TYA
+         318:                            RTS
+         319:                    ;
+         320:                    ;       CONVERT LSD OF A TO ASCII
+         321:                    ;       OUTPUT TO TAPE
+         322:                    ;
+         323:                    HEXOUT  AND   #$0F
+         324:                            CMP   #$0A
+         325:                            CLC
+         326:                            BMI   HEX1
+         327:                            ADC   #$07
+         328:                    HEX1    ADC   #$30
+         329:                    ;
+         330:                    ;       OUTPUT TO TAPE ONE ASCII
+         331:                    ;       CHAR  USE SUB'S ONE + ZRO
+         332:                    ;
+         333:                    OUTCHT  STX   SAVX
+         334:                            STY   SAVX+1
+         335:                            LDY   #$08      ; START BIT
+         336:                    CHT1    JSR   ONE
+         337:                            LSR   A         ; GET DATA BIT
+         338:                            BCS   CHT2
+         339:                            JSR   ONE       ; DATA BIT=1
+         340:                            JMP   CHT3
+         341:                    CHT2    JSR   ZRO       ; DATA BIT=0
+         342:                    CHT3    JSR   ZRO
+         343:                            DEY
+         344:                            BNE   CHT1
+         345:                            LDX   SAVX
+         346:                            LDY   SAVX+1
+         347:                            RTS
+         348:                    ;
+         349:                    ;
+         350:                    ;       OUTPUT 1 TO TAPE
+         351:                    ;       9 PULSES, 138 MICROSEC EACH
+         352:                    ;
+         353:                    ONE     LDX   #$09
+         354:                            PHA             ; SAVX A
+         355:                    ONE1    BIT   CLKRDI    ; WAIT FOR TIME OUT
+         356:                            BPL   ONE1
+         357:                            LDA   #126
+         358:                            STA   CLK1T
+         359:                            LDA   #$A7
+         360:                            STA   SBD       ; SET PB7=1
+         361:                    ONE2    BIT   CLKRDI
+         362:                            BPL   ONE2
+         363:                            LDA   #126
+         364:                            STA   CLK1T
+         365:                            LDA   #$27
+         366:                            STA   SBD       ; RESET PB7=0
+         367:                            DEX
+         368:                            BNE   ONE1
+         369:                            PLA
+         370:                            RTS
+         371:                    ;
+         372:                    ;
+         373:                    ;       OUTPUT 0 TO TAPE
+         374:                    ;       6 PULSES, 207 MICROSEC EACH
+         375:                    ;
+         376:                    ZRO     LDX   #$06
+         377:                            PHA             ; SAVX A
+         378:                    ZRO1    BIT   CLKRDI
+         379:                            BPL   ZRO1
+         380:                            LDA   #$C3
+         381:                            STA   CLK1T
+         382:                            LDA   #$A7
+         383:                            STA   SBD       ; SET PB7=1
+         384:                    ZRO2    BIT   CLKRDI
+         385:                            BPL   ZRO2
+         386:                            LDA   #195
+         387:                            STA   CLK1T
+         388:                            LDA   #$27
+         389:                            STA   SBD       ; RESET PB7=0
+         390:                            DEX
+         391:                            BNE   ZRO1
+         392:                            PLA             ; RESTORE A
+         393:                            RTS
+         394:                    ;
+         395:                    ;       SUB TO INC VEB+1,2
+         396:                    ;
+         397:                    INCVEB  INC   VEB+1
+         398:                            BNE   INCVE1
+         399:                            INC   VEB+2
+         400:                    INCVE1  RTS
+         401:                    ;
+         402:                    ;       SUB TO READ BYTE FROM TAPE
+         403:                    ;
+         404:                    RDBYT   JSR   RDCHT
+         405:                            JSR   PACKT
+         406:                            JSR   RDCHT
+         407:                            JSR   PACKT
+         408:                            RTS
+         409:                    ;
+         410:                    ;       PACK A=ASCII INTO SAVX
+         411:                    ;       AS HEX DATA
+         412:                    ;
+         413:                    PACKT   CMP   #$30
+         414:                            BMI   PACKT3
+         415:                            CMP   #$47
+         416:                            BPL   PACKT3
+         417:                            CMP   #$40
+         418:                            BMI   PACKT1
+         419:                            CLC
+         420:                            ADC   #$09
+         421:                    PACKT1  ROL   A
+         422:                            ROL   A
+         423:                            ROL   A
+         424:                            ROL   A
+         425:                            LDY   #$04
+         426:                    PACKT2  ROL   A
+         427:                            ROL   SAVX
+         428:                            DEY
+         429:                            BNE   PACKT2
+         430:                            LDA   SAVX
+         431:                            LDY   #$00      ; Y=0 VALID HEX CHAR
+         432:                            RTS
+         433:                    PACKT3  INY             ; Y=1 NOT HEX
+         434:                            RTS
+         435:                    ;
+         436:                    ;       GET 1 CHAR FROM TAPE AND RETURN
+         437:                    ;       WITH CHAR IN A  USE SAVX+1 TO ASM CHAR
+         438:                    ;
+         439:                    RDCHT   STX   SAVX+2
+         440:                            LDX   #$08      ; READ 8 BITS
+         441:                    RDCHT1  JSR   RDBIT     ; GET NEXT DATA BIT
+         442:                            LSR   SAVX+1    ; RIGHT SHIFT CHAR
+         443:                            ORA   SAVX+1    ; OR IN SIGN BIT
+         444:                            STA   SAVX+1    ; REPLACE CHAR
+         445:                            DEX
+         446:                            BNE   RDCHT1
+         447:                    ;
+         448:                            LDA   SAVX+1    ; MOVE CHAR INTO A
+         449:                            ROL   A         ; SHIFT OFF PARITY
+         450:                            LSR   A
+         451:                            LDX   SAVX+2
+         452:                            RTS
+         453:                    ;
+         454:                    ;       THIS SUB GETS ONE BIT FROM
+         455:                    ;       TAPE AND RETURNS IT IN SIGN OF A
+         456:                    ;
+         457:                    RDBIT   BIT   SBD       ; WAIT FOR END OF START BIT
+         458:                            BPL   RDBIT
+         459:                            LDA   CLKRDT    ; GET START BIT TIME
+         460:                            LDY   #$FF      ; A=256-T1
+         461:                            STY   CLK64T    ; SET UP TIMER
+         462:                    ;
+         463:                            LDY   #$14
+         464:                    RDBIT3  DEY             ; DELAY 100 MICROSEC
+         465:                            BNE   RDBIT3
+         466:                    ;
+         467:                    RDBIT2  BIT   SBD
+         468:                            BMI   RDBIT2    ; WAIT FOR NEXT START BIT
+         469:                    
+         470:                            SEC
+         471:                            SBC   CLKRDT    ; (256-T1)-(256-T2)=T2-T1
+         472:                            LDY   #$FF
+         473:                            STY   CLK64T    ; SET UP TIMER FOR NEXT BIT
+         474:                    
+         475:                            LDY   #$07
+         476:                    RDBIT4  DEY             ; DELAY 50 MICROSEC
+         477:                            BNE   RDBIT4
+         478:                    ;
+         479:                            EOR   #$FF      ; COMPLEMENT SIGN OF A
+         480:                            AND   #$80      ; MASK ALL EXCEPT SIGN
+         481:                    RTS
+         482:                    ;
+         483:                    ;
+         484:                    ;       DIAGNOSTICS
+         485:                    ;          MEMORY
+         486:                    ;          PLLCAL
+         487:                    ;
+         488:                    ;
+         489:                    ;
+         490:                    ;       PLLCAL OUTPUT 166 MICROSEC
+         491:                    ;       PULSE STRING
+         492:                    ;
+         493:                    PLLCAL  LDA   #$27
+         494:                            STA   SBD       ; TURN OFF DATIN PB5=1
+         495:                            LDA   #$BF      ; CONVERT PB7 TO OUTPUT
+         496:                            STA   PBDD
+         497:                    ;
+         498:                    PLL1    BIT   CLKRDI
+         499:                            BPL   PLL1
+         500:                            LDA   #154      ; WAIT 166 MICROSEC
+         501:                            STA   CLK1T
+         502:                            LDA   #$A7      ; OUTPUT PB7=1
+         503:                            STA   SBD
+         504:                    ;
+         505:                    PLL2    BIT   CLKRDI
+         506:                            BPL   PLL2
+         507:                            LDA   #154
+         508:                            STA   CLK1T
+         509:                            LDA   #$27      ; PB7=0
+         510:                            STA   SBD
+         511:                            JMP   PLL1
+         512:                    ;
+         513:                    ;
+         514:                    ;       INTERRUPTS PAGE 27
+         515:                    ;
+         516:                            .ORG    $1FBA        ; RESERVED FOR TEST
+         517:                    NMIP27  .WORD PLLCAL
+         518:                    RSTP27  .WORD PLLCAL
+         519:                    IRQP27  .WORD PLLCAL
+         520:                    ;
+         521:                    ;
+         522:                    ;
+         523:                    ;
+         524:                    ;
+         525:                    ;
+         526:                    ;              666666  555555  333333  000000
+         527:                    ;              6       5            3  0    0
+         528:                    ;              6       5            3  0    0
+         529:                    ;              666666  555555  333333  0    0
+         530:                    ;              6    6       5       3  0    0
+         531:                    ;              6    6       5       3  0    0
+         532:                    ;              666666  666666  666666  000000
+         533:                    ;
+         534:                    ;
+         535:                    ;
+         536:                    ;                      000000  000000  222222
+         537:                    ;                      0    0  0    0       2
+         538:                    ;              ------  0    0  0    0       2
+         539:                    ;              ------  0    0  0    0  222222
+         540:                    ;              ------  0    0  0    0  2
+         541:                    ;                      0    0  0    0  2
+         542:                    ;                      000000  000000  222222
+         543:                    ;
+         544:                    ;
+         545:                    ;
+         546:                    ;
+         547:                    ;
+         548:                    ;          COPYRIGHT
+         549:                    ;          MOS TECHNOLOGY INC.
+         550:                    ;          DATE  OCT 13 1975    REV E
+         551:                    ;
+         552:                    ;    KIM   :TTY INTERFACE
+         553:                    ;          :KEYBOARD INTERFACE
+         554:                    ;          :7 SEG 6 DIGIT DISPLAY
+         555:                    ;
+         556:                    ;
+         557:                    ;    TTY CMDS:
+         558:                    ;          G   GOEXEC
+         559:                    ;          CR  OPEN NEXT CELL
+         560:                    ;          LF  OPEN PREV. CELL
+         561:                    ;          .   MODIFY OPEN CELL
+         562:                    ;          SP  OPEN NEW CELL
+         563:                    ;          L   LOAD (OBJECT FORMAT)
+         564:                    ;          Q   DUMP  FROM OPEN CELL ADDR TO HI LIMIT
+         565:                    ;          RO  RUB OUT  - RETURN TO START  (KIM)
+         566:                    ;              ((ALL ILLEGAL CHARS ARE IGNORED))
+         567:                    ;
+         568:                    ;    KEYBOARD COMMANDS:
+         569:                    ;        ADDR  SETS MODE TO MODIFY CELL ADDRESS
+         570:                    ;        DATA  SETS MODE TO MODIFY DATA IN OPEN CELL
+         571:                    ;        STEP  INCREMENTS TO NEXT CELL
+         572:                    ;        RST   SYSTEM RESET
+         573:                    ;        RUN   GOEXEC
+         574:                    ;        STOP  $1C00 CAN BE LOADED INTO NMIV TO
+         575:                    ;              USE STOP FEATURE
+         576:                    ;        PC    DISPLAY PC
+         577:                    ;
+         578:                    ;        CLOCK IS NOT DISABLED IN SIGMA 1
+         579:                    ;
+         580:                    ;
+         581:                    ;
+         582:                    ;
+         583:                    ;
+         584:                            .ORG    $1C00
+         585:                    ;
+         586:                    ;
+         587:                    SAVE    STA   ACC       ; KIM ENTRY VIA STOP (NMI)
+         588:                            PLA             ; OR BRK (IRQ)
+         589:                            STA   PREG
+         590:                            PLA             ; KIM ENTRY VIA JSR (A LOST)
+         591:                            STA   PCL
+         592:                            STA   POINTL
+         593:                            PLA
+         594:                            STA   PCH
+         595:                            STA   POINTH
+         596:                            STY   YREG
+         597:                            STX   XREG
+         598:                            TSX
+         599:                            STX   SPUSER
+         600:                            JSR   INITS
+         601:                            JMP   START
+         602:                    ;
+         603:                    NMIT    JMP   [NMIV]    ; NON-MASKABLE INTERRUPT TRAP
+         604:                    IRQT    JMP   [IRQV]    ; INTERRUPT TRAP
+         605:                    ;
+         606:                    RST     LDX   #$FF      ; KIM ENTRY VIA RST
+         607:                            TXS
+         608:                            STX   SPUSER
+         609:                            JSR   INITS
+         610:                    ;
+         611:                    ;
+         612:                    DETCPS  LDA   #$FF      ; COUNT START BIT
+         613:                            STA   CNTH30    ; ZERO CNTH30
+         614:                            LDA   #$01      ; MASK HI ORDER BITS
+         615:                    DET1    BIT   SAD       ; TEST
+         616:                            BNE   START     ; KEYBD SSW TEST
+         617:                            BMI   DET1      ; START BIT TEST
+         618:                            LDA   #$FC
+         619:                    DET3    CLC             ; THIS LOOP COUNTS
+         620:                            ADC   #$01      ; THE START BIT TIME
+         621:                            BCC   DET2
+         622:                            INC   CNTH30
+         623:                    DET2    LDY   SAD       ; CHECK FOR END OF START BIT
+         624:                            BPL   DET3
+         625:                            STA   CNTL30
+         626:                            LDX   #$08
+         627:                            JSR   GET5      ; GET REST OF THE CHAR, TEST CHAR
+         628:                    ;
+         629:                    ;
+         630:                    ;
+         631:                    ;
+         632:                    ;
+         633:                    ;
+         634:                    ;       MAKE TTY/KB SELECTION
+         635:                    ;
+         636:                    START   JSR   INIT1
+         637:                            LDA   #$01
+         638:                            BIT   SAD
+         639:                            BNE   TTYKB
+         640:                            JSR   CRLF      ; PRT CR LF
+         641:                            LDX   #$0A      ; TYPE OUT KIM
+         642:                            JSR   PRTST
+         643:                            JMP   SHOW1
+         644:                    ;
+         645:                    CLEAR   LDA   #$00
+         646:                            STA   INL       ; CLEAR INPUT BUFFER
+         647:                            STA   INH
+         648:                    READ    JSR   GETCH     ; GET CHAR
+         649:                            CMP   #$01
+         650:                            BEQ   TTYKB
+         651:                            JSR   PACK
+         652:                            JMP   SCAN
+         653:                    ;
+         654:                    ;       MAIN ROUTINE FOR KEY BOARD
+         655:                    ;       AND DISPLAY
+         656:                    ;
+         657:                    TTYKB   JSR   SCAND     ; IF A=0 NO KEY
+         658:                            BNE   START
+         659:                    TTYKB1  LDA   #$01
+         660:                            BIT   SAD
+         661:                            BEQ   START
+         662:                            JSR   SCAND
+         663:                            BEQ   TTYKB1
+         664:                            JSR   SCAND
+         665:                            BEQ   TTYKB1
+         666:                    ;
+         667:                    GETK    JSR   GETKEY
+         668:                            CMP   #$15
+         669:                            BPL   START
+         670:                            CMP   #$14
+         671:                            BEQ   PCCMD     ; DISPLAY PC
+         672:                            CMP   #$10      ; ADDR MODE=1
+         673:                            BEQ   ADDRM
+         674:                            CMP   #$11      ; DATA MODE=1
+         675:                            BEQ   DATAM
+         676:                            CMP   #$12      ; STEP
+         677:                            BEQ   STEP
+         678:                            CMP   #$13      ; RUN
+         679:                            BEQ   GOV
+         680:                    DATA    ASL   A         ; SHIFT CHAR INTO HIGH
+         681:                            ASL   A         ; ORDER NIBBLE
+         682:                            ASL   A
+         683:                            ASL   A
+         684:                            STA   TEMP      ; STORE IN TEMP
+         685:                            LDX   #$04
+         686:                    DATA1   LDY   MODE      ; TEST MODE 1=ADDR
+         687:                            BNE   ADDR      ; MODE=0 DATA
+         688:                            LDA   [POINTL],Y ; GET DATA
+         689:                            ASL   TEMP      ; SHIFT CHAR
+         690:                            ROL   A         ; SHIFT DATA
+         691:                            STA   [POINTL],Y ; STORE OUT DATA
+         692:                            JMP   DATA2
+         693:                    ;
+         694:                    ADDR    ASL   A         ; SHIFT CHAR
+         695:                            ROL   POINTL    ; SHIFT ADDR
+         696:                            ROL   POINTH    ; SHIFT ADDR HI
+         697:                    DATA2   DEX
+         698:                            BNE   DATA1     ; DO 4 TIMES
+         699:                            BEQ   DATAM2    ; EXIT HERE
+         700:                    ;
+         701:                    ADDRM   LDA   #$01
+         702:                            BNE   DATAM1
+         703:                    ;
+         704:                    DATAM   LDA   #$00
+         705:                    DATAM1  STA   MODE
+         706:                    DATAM2  JMP   START
+         707:                    ;
+         708:                    STEP    JSR   INCPT
+         709:                            JMP   START
+         710:                    ;
+         711:                    GOV     JMP   GOEXEC
+         712:                    ;
+         713:                    ;
+         714:                    ;       DISPLAY PC BY MOVING
+         715:                    ;       PC TO POINT
+         716:                    ;
+         717:                    PCCMD   LDA   PCL
+         718:                            STA   POINTL
+         719:                            LDA   PCH
+         720:                            STA   POINTH
+         721:                            JMP   START
+         722:                    ;
+         723:                    ;       LOAD PAPER TAPE FROM TTY
+         724:                    ;
+         725:                    LOAD    JSR   GETCH     ; LOOK FOR FIRST CHAR
+         726:                            CMP   #$3B      ; SMICOLON
+         727:                            BNE   LOAD
+         728:                            LDA   #$00
+         729:                            STA   CHKSUM
+         730:                            STA   CHKHI
+         731:                    ;
+         732:                            JSR   GETBYT    ; GET BYTE CNT
+         733:                            TAX             ; SAVE IN X INDEX
+         734:                            JSR   CHK       ; COMPUTE CHKSUM
+         735:                    ;
+         736:                            JSR   GETBYT    ; GET ADDRESS HI
+         737:                            STA   POINTH
+         738:                            JSR   CHK
+         739:                            JSR   GETBYT    ; GET ADDRESS LO
+         740:                            STA   POINTL
+         741:                            JSR   CHK
+         742:                    ;
+         743:                            TXA             ; IF CNT=0 DONT
+         744:                            BEQ   LOAD3     ; GET ANY DATA
+         745:                    ;
+         746:                    LOAD2   JSR   GETBYT    ; GET DATA
+         747:                            STA   [POINTL],Y ; STORE DATA
+         748:                            JSR   CHK
+         749:                            JSR   INCPT     ; NEXT ADDRESS
+         750:                            DEX
+         751:                            BNE   LOAD2
+         752:                            INX             ; X=1 DATA RECORD
+         753:                    ;                       ; X=0 LAST RECORD
+         754:                    LOAD3   JSR   GETBYT    ; COMPARE CHKSUM
+         755:                            CMP   CHKHI
+         756:                            BNE   LOADE1
+         757:                            JSR   GETBYT
+         758:                            CMP   CHKSUM
+         759:                            BNE   LOADER
+         760:                    ;
+         761:                            TXA             ; X=0 LAST RECORD
+         762:                            BNE   LOAD
+         763:                    ;
+         764:                    LOAD7   LDX   #$0C      ; X-OFF KIM
+         765:                    LOAD8   LDA   #$27
+         766:                            STA   SBD       ; DISABLE DATA IN
+         767:                            JSR   PRTST
+         768:                            JMP   START
+         769:                    ;
+         770:                    LOADE1  JSR   GETBYT    ; DUMMY
+         771:                    LOADER  LDX   #$11      ; X-OFF ERR KIM
+         772:                            BNE   LOAD8
+         773:                    ;
+         774:                    ;       DUMP TO TTY
+         775:                    ;       FROM OPEN CELL ADDRESS
+         776:                    ;       TO LIMHL,LIMHH
+         777:                    ;
+         778:                    DUMP    LDA   #$00
+         779:                            STA   INL
+         780:                            STA   INH       ; CLEAR RECORD COUNT
+         781:                    DUMP0   LDA   #$00
+         782:                            STA   CHKHI     ; CLEAR CHKSUM
+         783:                            STA   CHKSUM
+         784:                    ;
+         785:                            JSR   CRLF      ; PRINT CR LF
+         786:                            LDA   #$3B      ; PRINT SEMICOLON
+         787:                            JSR   OUTCH
+         788:                            LDA   POINTL    ; TEST POINT GT OR ET
+         789:                            CMP   EAL       ; HI LIMIT GOTO EXIT
+         790:                            LDA   POINTH
+         791:                            SBC   EAH
+         792:                            BCC   DUMP4
+         793:                    ;
+         794:                            LDA   #$00      ; PRINT LAST RECORD
+         795:                            JSR   PRTBYT    ; 0 BYTES
+         796:                            JSR   OPEN
+         797:                            JSR   PRTPNT
+         798:                    ;
+         799:                            LDA   CHKHI     ; PRINT CHKSUM
+         800:                            JSR   PRTBYT    ; FOR LAST RECORD
+         801:                            LDA   CHKSUM
+         802:                            JSR   PRTBYT
+         803:                            JMP   CLEAR
+         804:                    ;
+         805:                    DUMP4   LDA   #$18      ; PRINT 24 BYTE COUNT
+         806:                            TAX             ; SAVE AS INDEX
+         807:                            JSR   PRTBYT
+         808:                            JSR   CHK
+         809:                            JSR   PRTPNT
+         810:                    ;
+         811:                    DUMP2   LDY   #$00      ; PRINT 24 BYTES
+         812:                            LDA   [POINTL],Y ; GET DATA
+         813:                            JSR   PRTBYT    ; PRINT DATA
+         814:                            JSR   CHK       ; COMPUTE CHKSUM
+         815:                            JSR   INCPT     ; INCREMENT POINT
+         816:                            DEX
+         817:                            BNE   DUMP2
+         818:                    ;
+         819:                            LDA   CHKHI     ; PRINT CHKSUM
+         820:                            JSR   PRTBYT
+         821:                            LDA   CHKSUM
+         822:                            JSR   PRTBYT
+         823:                            INC   INL       ; INCR RECORD COUNT
+         824:                            BNE   DUMP3
+         825:                            INC   INH
+         826:                    DUMP3   JMP   DUMP0
+         827:                    ;
+         828:                    SPACE   JSR   OPEN      ; OPEN NEW CELL
+         829:                    SHOW    JSR   CRLF      ; PRINT CR LF
+         830:                    SHOW1   JSR   PRTPNT
+         831:                            JSR   OUTSP     ; PRINT SPACE
+         832:                            LDY   #$00      ; PRINT DATA SPECIFIED
+         833:                            LDA   [POINTL],Y ; BY POINT AD=LDA EXT
+         834:                            JSR   PRTBYT
+         835:                            JSR   OUTSP     ; PRINT SPACE
+         836:                            JMP   CLEAR
+         837:                    ;
+         838:                    RTRN    JSR   INCPT     ; OPEN NEXT CELL
+         839:                            JMP   SHOW
+         840:                    ;
+         841:                    GOEXEC  LDX   SPUSER
+         842:                            TXS
+         843:                            LDA   POINTH    ; PROGRAM RUNS FROM
+         844:                            PHA             ; OPEN CELL ADDRESS
+         845:                            LDA   POINTL
+         846:                            PHA
+         847:                            LDA   PREG
+         848:                            PHA
+         849:                            LDX   XREG      ; RESTORE REGS
+         850:                            LDY   YREG
+         851:                            LDA   ACC
+         852:                            RTI
+         853:                    ;
+         854:                    SCAN    CMP   #$20      ; OPEN CELL
+         855:                            BEQ   SPACE
+         856:                            CMP   #$7F      ; RUB OUT (KIM)
+         857:                            BEQ   STV
+         858:                            CMP   #$0D      ; NEXT CELL
+         859:                            BEQ   RTRN
+         860:                            CMP   #$0A      ; PREV CELL
+         861:                            BEQ   FEED
+         862:                            CMP   #'.'      ; MODIFY CELL
+         863:                            BEQ   MODIFY
+         864:                            CMP   #'G'      ; GO EXEC
+         865:                            BEQ   GOEXEC
+         866:                            CMP   #'Q'      ; DUMP FROM OPEN CELL TO HI LIMIT
+         867:                            BEQ   DUMPV
+         868:                            CMP   #'L'      ; LOAD TAPE
+         869:                            BEQ   LOADV
+         870:                            JMP   READ      ; IGNORE ILLEGAL CHAR
+         871:                    ;
+         872:                    STV     JMP   START
+         873:                    DUMPV   JMP   DUMP
+         874:                    LOADV   JMP   LOAD
+         875:                    ;
+         876:                    FEED    SEC
+         877:                            LDA   POINTL    ; DEC DOUBLE BYTE
+         878:                            SBC   #$01      ; AT POINTL AND POINTH
+         879:                            STA   POINTL
+         880:                            BCS   FEED1
+         881:                            DEC   POINTH
+         882:                    FEED1   JMP   SHOW
+         883:                    ;
+         884:                    MODIFY  LDY   #$00      ; GET CONTENTS OF INPUT BUFF
+         885:                            LDA   INL       ; INL AND STORE IN LOC
+         886:                            STA   [POINTL],Y ; SPECIFIED BY POINT
+         887:                            JMP   RTRN
+         888:                    ;
+         889:                    ;       END OF MAIN LINE
+         890:                    ;
+         891:                    ;       SUBROUTINES FOLLOW
+         892:                    ;
+         893:                    ;
+         894:                    ;
+         895:                    ;       SUB TO PRINT POINTL,POINTH
+         896:                    ;
+         897:                    PRTPNT  LDA   POINTH
+         898:                            JSR   PRTBYT
+         899:                            JSR   CHK
+         900:                            LDA   POINTL
+         901:                            JSR   PRTBYT
+         902:                            JSR   CHK
+         903:                            RTS
+         904:                    ;
+         905:                    ;       PRINT STRING OF ASCII CHARS FROM
+         906:                    ;       TOP+X TO TOP
+         907:                    ;
+         908:                    CRLF    LDX   #$07
+         909:                    PRTST   LDA   TOP,X
+         910:                            JSR   OUTCH
+         911:                            DEX
+         912:                            BPL   PRTST     ; STOP ON INDEX ZERO
+         913:                            RTS
+         914:                    ;
+         915:                    ;       PRINT 1 HEX BYTE AS TWO ASCII CHAR'S
+         916:                    ;
+         917:                    PRTBYT  STA   TEMP
+         918:                            LSR   A         ; SHIFT CHAR RIGHT 4 BITS
+         919:                            LSR   A
+         920:                            LSR   A
+         921:                            LSR   A
+         922:                            JSR   HEXTA     ; CONVERT TO HEX AND PRINT
+         923:                            LDA   TEMP      ; GET OTHER HALF
+         924:                            JSR   HEXTA     ; CONVERT TO HEX AND PRINT
+         925:                            LDA   TEMP      ; RESTORE BYTE IN A AND RETURN
+         926:                            RTS
+         927:                    ;
+         928:                    HEXTA   AND   #$0F      ; MASK HI 4 BITS
+         929:                            CMP   #$0A
+         930:                            CLC
+         931:                            BMI   HEXTA1
+         932:                            ADC   #$07      ; ALPHA HEX
+         933:                    HEXTA1  ADC   #$30      ; DEC HEX
+         934:                            JMP   OUTCH     ; PRINT CHAR
+         935:                    ;
+         936:                    ;       GET 1 CHAR FROM TTY
+         937:                    ;       CHAR IN A
+         938:                    ;       X IS PRESERVED AND Y RETURNED = FF
+         939:                    ;
+         940:                    GETCH   STX   TMPX      ; SAVE X REG
+         941:                            LDX   #$08      ; SET UP 8-BIT CNT
+         942:                            LDA   #$01
+         943:                    GET1    BIT   SAD
+         944:                            BNE   GET6
+         945:                            BMI   GET1      ; WAIT FOR START BIT
+         946:                            JSR   DELAY     ; DELAY 1 BIT
+         947:                    GET5    JSR   DEHALF    ; DELAY 1/2 BIT TIME
+         948:                    GET2    LDA   SAD       ; GET 8 BITS
+         949:                            AND   #$80      ; MASK OFF LOW ORDER BITS
+         950:                            LSR   CHAR      ; SHIFT RIGHT CHAR
+         951:                            ORA   CHAR
+         952:                            STA   CHAR
+         953:                            JSR   DELAY     ; DELAY 1 BIT TIME
+         954:                            DEX
+         955:                            BNE   GET2      ; GET NEXT CHAR
+         956:                            JSR   DEHALF    ; EXIT THIS RTN
+         957:                    ;
+         958:                            LDX   TMPX
+         959:                            LDA   CHAR
+         960:                            ROL   A         ; SHIFT OFF PARITY
+         961:                            LSR   A
+         962:                    GET6    RTS
+         963:                    ;
+         964:                    ;       INITIALIZATION FOR SIGMA
+         965:                    ;
+         966:                    INITS   LDX   #$01      ; SET KB MODE TO ADDR
+         967:                            STX   MODE
+         968:                    ;
+         969:                    INIT1   LDX   #$00
+         970:                            STX   PADD      ; FOR SIGMA USE SADD
+         971:                            LDX   #$3F
+         972:                            STX   PBDD      ; FOR SIGMA USE SBDD
+         973:                            LDX   #$07      ; ENABLE DATA IN
+         974:                            STX   SBD       ; OUTPUT
+         975:                            CLD
+         976:                            SEI
+         977:                            RTS
+         978:                    ;
+         979:                    ;       PRINT 1 CHAR   CHAR IN A
+         980:                    ;       X IS PRESERVED  Y RETURNED = FF
+         981:                    ;       OUTSP   PRINTS 1 SPACE
+         982:                    ;
+         983:                    OUTSP   LDA   #$20
+         984:                    OUTCH   STA   CHAR
+         985:                            STX   TMPX
+         986:                            JSR   DELAY     ; 10/11 BIT CODE SYNC
+         987:                            LDA   SBD       ; START BIT
+         988:                            AND   #$FE
+         989:                            STA   SBD
+         990:                            JSR   DELAY
+         991:                            LDX   #$08
+         992:                    OUT1    LDA   SBD       ; DATA BIT
+         993:                            AND   #$FE
+         994:                            LSR   CHAR
+         995:                            ADC   #$00
+         996:                            STA   SBD
+         997:                            JSR   DELAY
+         998:                            DEX
+         999:                            BNE   OUT1
+        1000:                            LDA   SBD       ; STOP BIT
+        1001:                            ORA   #$01
+        1002:                            STA   SBD
+        1003:                            JSR   DELAY     ; STOP BIT
+        1004:                            LDX   TMPX      ; RESTORE INDEX
+        1005:                            RTS
+        1006:                    ;
+        1007:                    ;       DELAY 1 BIT TIME
+        1008:                    ;       AS DETERMEND BY DETCPS
+        1009:                    ;
+        1010:                    DELAY   LDA   CNTH30    ; THIS LOOP SIMULATES
+        1011:                            STA   TIMH      ; DETCPS SECTION AND WILL DELAY
+        1012:                            LDA   CNTL30    ; 1 BIT TIME
+        1013:                    DE2     SEC
+        1014:                    DE4     SBC   #$01
+        1015:                            BCS   DE3
+        1016:                            DEC   TIMH
+        1017:                    DE3     LDY   TIMH
+        1018:                            BPL   DE2
+        1019:                            RTS
+        1020:                    ;
+        1021:                    ;                         DELAY 1/2 BIT TIME
+        1022:                    DEHALF  LDA   CNTH30    ; DOUBLE RIGHT SHIFT OF DELAY
+        1023:                            STA   TIMH      ; CONSTANT FOR A DIV BY 2
+        1024:                            LDA   CNTL30
+        1025:                            LSR   A
+        1026:                            LSR   TIMH
+        1027:                            BCC   DE2
+        1028:                            ORA   #$80
+        1029:                            BCS   DE4
+        1030:                    ;
+        1031:                    ;       SUB TO DETERMINE IF KEY IS
+        1032:                    ;       DEPRESSED OR CONDITION OF SSW
+        1033:                    ;             KEY NOT DEP OR TTY MODE    A = 0
+        1034:                    ;             KEY DEP OR KB MODE      A NOT ZERO
+        1035:                    ;
+        1036:                    ;
+        1037:                    AK      LDY   #$03      ; 3 ROWS
+        1038:                            LDX   #$01      ; DIGIT 0
+        1039:                    ;
+        1040:                    ONEKEY  LDA   #$FF
+        1041:                    AK1     STX   SBD       ; OUTPUT DIGIT
+        1042:                            INX             ; GET NEXT DIGIT
+        1043:                            INX
+        1044:                            AND   SAD       ; INPUT SEGMENTS
+        1045:                            DEY
+        1046:                            BNE   AK1
+        1047:                    ;
+        1048:                            LDY   #$07
+        1049:                            STY   SBD
+        1050:                    ;
+        1051:                            ORA   #$80
+        1052:                            EOR   #$FF
+        1053:                            RTS
+        1054:                    ;
+        1055:                    ;       SUB  OUTPUT TO 7-SEGMENT DISPLAY
+        1056:                    ;
+        1057:                    SCAND   LDY   #$00      ; GET DATA SPECIFIED
+        1058:                            LDA   [POINTL],Y ; BY POINT
+        1059:                            STA   INH       ; SET UP DISPLAY BUFFER
+        1060:                    SCANDS  LDA   #$7F      ; CHANGE SEG
+        1061:                            STA   PADD      ; TO OUTPUT
+        1062:                    ;
+        1063:                            LDX   #$09      ; INIT DIGIT NUMBER
+        1064:                            LDY   #$03      ; OUTPUT 3 BYTES
+        1065:                    ;
+        1066:                    SCAND1  LDA   INL,Y     ; GET BYTE
+        1067:                            LSR   A         ; GET MSD
+        1068:                            LSR   A
+        1069:                            LSR   A
+        1070:                            LSR   A
+        1071:                            JSR   CONVD     ; OUTPUT CHAR
+        1072:                            LDA   INL,Y     ; GET BYTE AGAIN
+        1073:                            AND   #$0F      ; GET LSD
+        1074:                            JSR   CONVD     ; OUTPUT CHAR
+        1075:                            DEY             ; SET UP FOR NXT BYTE
+        1076:                            BNE   SCAND1
+        1077:                            STX   SBD       ; ALL DIGITS OFF
+        1078:                            LDA   #$00      ; CHANGE SEGMENT
+        1079:                            STA   PADD      ; TO INPUTS
+        1080:                            JMP   AK        ; GET ANY KEY
+        1081:                    ;
+        1082:                    ;       CONVERT AND DISPLAY HEX
+        1083:                    ;       USED BY SCAND ONLY
+        1084:                    ;
+        1085:                    CONVD   STY   TEMP      ; SAVE Y
+        1086:                            TAY             ; USE CHAR AS INDEX
+        1087:                            LDA   TABLE,Y   ; LOOKUP CONVERSION
+        1088:                            LDY   #$00      ; TURN OFF SEGMENTS
+        1089:                            STY   SAD
+        1090:                            STX   SBD       ; OUTPUT DIGIT ENABLE
+        1091:                            STA   SAD       ; OUT PUT SEGMENTS
+        1092:                    ;
+        1093:                            LDY   #$7F      ; DELAY 500 CYCLES APPROX.
+        1094:                    CONVD1  DEY
+        1095:                            BNE   CONVD1
+        1096:                    ;
+        1097:                            INX             ; GET NEXT DIGIT NUMBER
+        1098:                            INX             ; ADD 2
+        1099:                            LDY   TEMP      ; RESTORE Y
+        1100:                            RTS
+        1101:                    ;
+        1102:                    ;       SUB TO INCREMENT POINT
+        1103:                    ;
+        1104:                    INCPT   INC   POINTL
+        1105:                            BNE   INCPT2
+        1106:                            INC   POINTH
+        1107:                            INCPT2  RTS
+        1108:                    ;
+        1109:                    ;       GET KEY FROM KEY BOARD
+        1110:                    ;       RETURN WITH A=KEY VALUE
+        1111:                    ;       GT. 15 THEN ILLEGAL OR NO KEY
+        1112:                    ;
+        1113:                    ;
+        1114:                    GETKEY  LDX   #$21      ; START AT DIGIT 0
+        1115:                    GETKE5  LDY   #$01      ; GET 1 ROW
+        1116:                            JSR   ONEKEY
+        1117:                            BNE   KEYIN     ; A=0 NO KEY
+        1118:                            CPX   #$27      ; TEST FOR DIGIT 2
+        1119:                            BNE   GETKE5
+        1120:                            LDA   #$15      ; 15=NOKEY
+        1121:                            RTS
+        1122:                    KEYIN   LDY   #$FF
+        1123:                    KEYIN1  ASL   A         ; SHIFT LEFT
+        1124:                            BCS   KEYIN2    ; UNTIL Y=KEY NUM
+        1125:                            INY
+        1126:                            BPL   KEYIN1
+        1127:                    KEYIN2  TXA
+        1128:                            AND   #$0F      ; MASK MSD
+        1129:                            LSR   A         ; DIVIDE BY 2
+        1130:                            TAX
+        1131:                            TYA
+        1132:                            BPL   KEYIN4
+        1133:                    KEYIN3  CLC
+        1134:                            ADC   #$07      ; MULT (X-1) TIMES A
+        1135:                    KEYIN4  DEX
+        1136:                            BNE   KEYIN3
+        1137:                            RTS
+        1138:                    ;
+        1139:                    ;       SUB TO COMPUTE CHECK SUM
+        1140:                    ;
+        1141:                    CHK     CLC
+        1142:                            ADC   CHKSUM
+        1143:                            STA   CHKSUM
+        1144:                            LDA   CHKHI
+        1145:                            ADC   #$00
+        1146:                            STA   CHKHI
+        1147:                            RTS
+        1148:                    ;
+        1149:                    ;       GET 2 HEX CHAR'S AND PACK
+        1150:                    ;       INTO INL AND INH
+        1151:                    ;       X PRESERVED  Y RETURNED = 0
+        1152:                    ;       NON HEX CHAR WILL BE LOADED AS NEAREST HEX EQU
+        1153:                    ;
+        1154:                    GETBYT  JSR   GETCH
+        1155:                            JSR   PACK
+        1156:                            JSR   GETCH
+        1157:                            JSR   PACK
+        1158:                            LDA   INL
+        1159:                            RTS
+        1160:                    ;
+        1161:                    ;       SHIFT CHAR IN A INTO
+        1162:                    ;       INL AND INH
+        1163:                    ;
+        1164:                    PACK    CMP   #$30      ; CHECK FOR HEX
+        1165:                            BMI   UPDAT2
+        1166:                            CMP   #$47      ; NOT HEX EXIT
+        1167:                            BPL   UPDAT2
+        1168:                            CMP   #$40      ; CONVERT TO HEX
+        1169:                            BMI   UPDATE
+        1170:                            CLC
+        1171:                            ADC   #$09
+        1172:                    UPDATE  ROL   A
+        1173:                            ROL   A
+        1174:                            ROL   A
+        1175:                            ROL   A
+        1176:                            LDY   #$04      ; SHIFT INTO I/O BUFFER
+        1177:                    UPDAT1  ROL   A
+        1178:                            ROL   INL
+        1179:                            ROL   INH
+        1180:                            DEY
+        1181:                            BNE   UPDAT1
+        1182:                            LDA   #$00      ; A=0 IF HEX NUM
+        1183:                    UPDAT2  RTS
+        1184:                    ;
+        1185:                    OPEN    LDA   INL       ; MOVE I/O BUFFER TO POINT
+        1186:                            STA   POINTL
+        1187:                            LDA   INH       ; TRANSFER INH- POINTH
+        1188:                            STA   POINTH
+        1189:                            RTS
+        1190:                    ;
+        1191:                    ;
+        1192:                    ;       END OF SUBROUTINES
+        1193:                    ;
+        1194:                    ;
+        1195:                    ;       TABLES
+        1196:                    ;
+        1197:                    TOP     .BYTE   $00, $00, $00, $00, $00, $00, $0A, $0D, "MIK", " ", $13, "RRE", " ", $13
+        1198:                    ;
+        1199:                    ;               TABLE HEX TO 7 SEGMENT
+        1200:                    ;               0    1    2    3    4    5    6    7
+        1201:                    TABLE   .BYTE   $BF, $86, $DB, $CF, $E6, $ED, $FD, $87
+        1202:                    
+        1203:                    ;               8    9    A    B    C    D    E    F
+        1204:                            .BYTE   $FF, $EF, $F7, $FC, $B9, $DE, $F9, $F1
+        1205:                    ;
+        1206:                    ;
+        1207:                    ;
+        1208:                    ;
+        1209:                    ;
+        1210:                    ;       INTERRUPT VECTORS
+        1211:                    ;
+        1212:                            .ORG    $1FFA
+        1213:                    NMIENT  .WORD   NMIT
+        1214:                    RSTENT  .WORD   RST
+        1215:                    IRQENT  .WORD   IRQT
+        1216:                            .END
+        1217:                    

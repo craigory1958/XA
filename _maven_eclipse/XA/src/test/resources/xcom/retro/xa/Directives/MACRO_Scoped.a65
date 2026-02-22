@@ -1,0 +1,11 @@
+
+.abc	.macro
+@loop
+		JMP	@loop
+		JMP def
+		.endmacro
+		
+		.abc    list=.list
+		.abc    list=.list
+
+def

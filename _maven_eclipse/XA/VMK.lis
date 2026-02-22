@@ -1,0 +1,476 @@
+          1:                    
+          2:                    
+          3:                    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+          4:                    ;                                                                              ;
+          5:                    ;                          Virtual Memory Kernel (VMK)                         ;
+          6:                    ;                                                                              ;
+          7:                    ;       Version: v0.0.1                                                        ;
+          8:                    ;       Author: Craig Gregory (CJG)                                            ;
+          9:                    ;                                                                              ;
+         10:                    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+         11:                    
+         12:                    ;       Label                   OPC     Operand/Arg
+         13:                    ;  |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+         14:                    
+         15:                                               .include     "VMK.def.a65", as=.VMK, list=.list
+  A.01   16:                    
+  A.02   17:                    
+  A.03   18:                    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  A.04   19:                    ;                                                                               ;
+  A.05   20:                    ;                    Virtual Memory Kernel (VMK) Definitions                    ;
+  A.06   21:                    ;                                                                               ;
+  A.07   22:                    ;       Version: v1.0.0                                                         ;
+  A.08   23:                    ;       Author: Craig Gregory (CJG)                                             ;
+  A.09   24:                    ;                                                                               ;
+  A.10   25:                    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  A.11   26:                    
+  A.12   27:                    ;   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+  A.13   28:                    
+  A.14   29: (0000)                     FALSE                  .equ     0
+  A.15   30: (0000)                     TRUE                   .equ     !FALSE
+  A.16   31:                    
+  A.17   32: (0001)                     V1                     .equ     1
+  A.18   33:                    
+  A.19   34: (0000)                     KERNAL_PID             .equ     0
+  A.20   35:                    
+  A.21   36:                    
+  A.22   37:                           .DECLARE_TYPE       .macro   type
+  A.23    0:                                                   .ifndef declared
+  A.24    0:                            declared                   .equ ${type}
+  A.25    0:                    
+  A.26    0:                                                       .if ${type} == V1
+  A.27    0:                                                           .include "VMK.lib.a65", as=.VMK
+  A.28    0:                                                       .endif
+  A.29    0:                                                   .endif
+  A.30    0:                                               .endmacro
+  A.31   38:                    
+         39:                                               .include     "../CPUs/_CPU.def.a65", as=.CPU, list=.list
+  B.01   40:                    
+  B.02   41:                    
+  B.03   42:                    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  B.04   43:                    ;                                                                               ;
+  B.05   44:                    ;                    MOS6502 Family uP (MPU65XX) Definitions                    ;
+  B.06   45:                    ;                                                                               ;
+  B.07   46:                    ;       Version: v1.0.0                                                         ;
+  B.08   47:                    ;       Author: Craig Gregory (CJG)                                             ;
+  B.09   48:                    ;                                                                               ;
+  B.10   49:                    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  B.11   50:                    
+  B.12   51:                    ;   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+  B.13   52:                    
+  B.14   53: (0001)                     MOS6502                .equ     1
+  B.15   54: (0002)                     W65C02                 .equ     2
+  B.16   55:                    
+  B.17   56:                    
+  B.18   57:                           .DECLARE_TYPE       .macro   type
+  B.19    0:                                                   .ifndef declared
+  B.20    0:                            declared                   .equ ${type}
+  B.21    0:                    
+  B.22    0:                                                       .if ${type} == MOS6502
+  B.23    0:                                                           .include "../CPUs/MOS6502.lib.a65", as=.CPU
+  B.24    0:                                                       .endif
+  B.25    0:                    
+  B.26    0:                                                       .if ${type} == W65C02
+  B.27    0:                                                           .include "../CPUs/W65C02.lib.a65", as=.CPU
+  B.28    0:                                                       .endif
+  B.29    0:                                                   .endif
+  B.30    0:                                               .endmacro
+  B.31   58:                    
+         59:                                               .include     "../devices/MMUs/_MMU.def.a65", as=.MMU, list=.list
+  C.01   60:                    
+  C.02   61:                    
+  C.03   62:                    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  C.04   63:                    ;                                                                               ;
+  C.05   64:                    ;             Memory Management Unit for 6502 (MMU6502) Definitions             ;
+  C.06   65:                    ;                                                                               ;
+  C.07   66:                    ;       Version: v1.0.0                                                         ;
+  C.08   67:                    ;       Author: Craig Gregory (CJG)                                             ;
+  C.09   68:                    ;                                                                               ;
+  C.10   69:                    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  C.11   70:                    
+  C.12   71:                    ;   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+  C.13   72:                    
+  C.14   73: (0001)                     V1                     .equ     1
+  C.15   74:                    
+  C.16   75:                    
+  C.17   76:                           .DECLARE_TYPE       .macro   type
+  C.18    0:                                                   .ifndef declared
+  C.19    0:                            declared                   .equ ${type}
+  C.20    0:                    
+  C.21    0:                                                       .if ${type} == V1
+  C.22    0:                                                           .include "../devices/MMUs/MMU6502v1.lib.a65", as=.MMU
+  C.23    0:                                                       .endif
+  C.24    0:                                                   .endif
+  C.25    0:                                               .endmacro
+  C.26   77:                    
+         78:                                               .include     "../archs/_ARCH.def.a65", as=.ARCH, list=.list
+  D.01   79:                    
+  D.02   80:                    
+  D.03   81:                    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  D.04   82:                    ;                                                                               ;
+  D.05   83:                    ;             Single Board Computer for 6502 (SBC6502) Definitions              ;
+  D.06   84:                    ;                                                                               ;
+  D.07   85:                    ;       Version: v1.0.0                                                         ;
+  D.08   86:                    ;       Author: Craig Gregory (CJG)                                             ;
+  D.09   87:                    ;                                                                               ;
+  D.10   88:                    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  D.11   89:                    
+  D.12   90:                    ;   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+  D.13   91:                    
+  D.14   92: (0001)                     ROM4k_V1               .equ     1
+  D.15   93:                    
+  D.16   94:                    
+  D.17   95:                            .DECLARE_TYPE      .macro   type
+  D.18    0:                                                   .ifndef declared
+  D.19    0:                            declared                   .equ ${type}
+  D.20    0:                    
+  D.21    0:                                                       .if ${type} == ROM4k_V1
+  D.22    0:                                                           .include "../archs/SBC6502v1_4K.lib.a65", as=.ARCH
+  D.23    0:                                                       .endif
+  D.24    0:                                                   .endif
+  D.25    0:                                               .endmacro
+  D.26   96:                    
+         97:                    
+         98:                    
+         99:                    
+        100:                    
+        101:                    
+        102:                    
+        103:                                                   .VMK:.DECLARE_TYPE       .VMK:V1, list=.list
+  A.29  104:                                                   .ifndef declared
+  A.30  105: (0001)                     declared                   .equ 0x01
+  A.31  106:                    
+  A.32  107:                                                       .if 0x01 == V1
+  A.33  108:                                                           .include "VMK.lib.a65", as=.VMK
+  A.34  109:                                                       .endif
+  A.35  110:                                                   .endif
+        111:                                                   .VMK:.DECLARE_TYPE       .VMK:V1, list=.list
+  A.29  112:                                                   .ifndef declared
+  A.30  113:                            declared                   .equ 0x01
+  A.31  114:                    
+  A.32  115:                                                       .if 0x01 == V1
+  A.33  116:                                                           .include "VMK.lib.a65", as=.VMK
+  A.34  117:                                                       .endif
+  A.35  118:                                                   .endif
+        119:                    
+        120:                    
+        121:                    
+        122:                    
+        123:                    
+        124:                    
+        125:                                                   .CPU:.DECLARE_TYPE       .CPU:MOS6502, list=.list
+  B.29  126:                                                   .ifndef declared
+  B.30  127: (0001)                     declared                   .equ 0x01
+  B.31  128:                    
+  B.32  129:                                                       .if 0x01 == MOS6502
+  B.33  130:                                                           .include "../CPUs/MOS6502.lib.a65", as=.CPU
+  B.34  131:                                                       .endif
+  B.35  132:                    
+  B.36  133:                                                       .if 0x01 == W65C02
+  B.37  134:                                                           .include "../CPUs/W65C02.lib.a65", as=.CPU
+        135:                                                   .ARCH:.DECLARE_TYPE      .ARCH:ROM4k_V1, list=.list
+  D.24  136:                                                   .ifndef declared
+  D.25  137: (0001)                     declared                   .equ 0x01
+  D.26  138:                    
+  D.27  139:                                                       .if 0x01 == ROM4k_V1
+  D.28  140:                                                           .include "../archs/SBC6502v1_4K.lib.a65", as=.ARCH
+  D.29  141:                                                       .endif
+  D.30  142:                                                   .endif
+        143:                                                   .MMU:.DECLARE_TYPE       .MMU:V1, list=.list
+  C.24  144:                                                   .ifndef declared
+  C.25  145: (0001)                     declared                   .equ 0x01
+  C.26  146:                    
+  C.27  147:                                                       .if 0x01 == V1
+  C.28  148:                                                           .include "../devices/MMUs/MMU6502v1.lib.a65", as=.MMU
+  C.29  149:                                                       .endif
+  C.30  150:                                                   .endif
+        151:                    
+        152:                    
+        153:                    ;
+        154:                    ; Memory Management Unit (MMU) Configutation
+        155:                    ;
+        156:                    
+        157:                            ; 2 PID Bits, 20 Effective Address Bits, 10 Segment Offset Bits
+        158:                    
+        159: (0010)                     bitsPhysicalAddr       .equ     16          ; MPU65XX with 16 bit address bus (65536 bytes)
+        160: (0014)                     bitsEffectiveAddr      .equ     20          ; SBC6502 with 20 bit effective address bus (1,048,576 bytes)
+        161: (000A)                     bitsSegmentSize        .equ     10          ; SBC6502 with 10 bit segment size (1024 segments)
+        162: (0002)                     bitsPID                .equ     2           ; Kernel = 0x0, User = 0x1 thru 0x2
+        163:                    
+        164:                                                   .MMU:.INSTANTIATE    bitsPhysicalAddr, bitsEffectiveAddr, bitsSegmentSize, bitsPID, list=.list
+ O.143  165:                    
+ O.144  166: (0010)                     bitsPhysicalAddr       .equ     0x10
+ O.145  167: (0014)                     bitsEffectiveAddr      .equ     0x14
+ O.146  168: (000A)                     bitsSegmentSize        .equ     0x0A
+ O.147  169: (0002)                     bitsPID                .equ     0x02
+ O.148  170:                    
+ O.149  171: (0006)                     bitsSegmentAddr        .equ     bitsPhysicalAddr - bitsSegmentSize
+ O.150  172: (0100)                     numSegmentVectors      .equ     1 << bitsSegmentAddr + 0x02
+ O.151  173: (0080)                     configValue            .equ     (bitsPID << 6) ! ((bitsEffectiveAddr - bitsPhysicalAddr) << 3) ! ((bitsSegmentSize -8) << 0)
+ O.152  174:                    
+ O.153  175:                    
+ O.154  176:                                               .segment     "SBC6502_IO"
+ O.155  177:  A000                  mmu
+ O.156  178:                    
+ O.157  179:                            ;
+ O.158  180:                            ;   R0 - Mode Register
+ O.159  181:                            ;
+ O.160  182:                            ;   ┌─┬─┬───────────┐
+ O.161  183:                            ;   │7 6 5 4 3 2 1 0│
+ O.162  184:                            ;   └┬┴┬┴─────┬─────┘
+ O.163  185:                            ;    │ │      └───────┤ PID (1-6 bits)
+ O.164  186:                            ;    │ │
+ O.165  187:                            ;    │ └──────────────┤ ~Kernel Mode (0 is enabled) / User Mode (1 is enabled)
+ O.166  188:                            ;    │
+ O.167  189:                            ;    └────────────────┤ ~Boot Mode (0 is enabled) / Address Translate Mode (1 is enanled)
+ O.168  190:                    
+ O.169  191:  A000 00                   R0                      .byte   0x00        ; Mode Register
+ O.170  192:                    
+ O.171  193:                            ;
+ O.172  194:                            ;   R1 - Status Register
+ O.173  195:                            ;
+ O.174  196:                            ;   ┌─┬─┬─┬─┬─┬─┬─┬─┐
+ O.175  197:                            ;   │7 6 5 4 3 2 1 0│
+ O.176  198:                            ;   └┬┴┬┴┬┴┬┴┬┴┬┴┬┴┬┘
+ O.177  199:                            ;    │ │ │ │ │ │ │ └──┤ Boot Address Error
+ O.178  200:                    
+ O.179  201:  A001 00                   R1                      .byte   0x00        ; Status Register
+ O.180  202:                    
+ O.181  203:                            ;
+ O.182  204:                            ;   CR0 - Config Register 0
+ O.183  205:                            ;
+ O.184  206:                            ;   ┌───────┬───────┐
+ O.185  207:                            ;   │7 6 5 4 3 2 1 0│
+ O.186  208:                            ;   └───┬───┴───┬───┘
+ O.187  209:                            ;       │       └─────┤ # Page Offset Bits (0-15 bits)
+ O.188  210:                            ;       │
+ O.189  211:                            ;       └─────────────┤ # Page Segment Bits (0-15 bits)
+ O.190  212:                    
+ O.191  213:  A002 00                   CR0                     .byte   0x00        ; Config Register 0
+ O.192  214:                    
+ O.193  215:                            ;
+ O.194  216:                            ;   CR1 - Config Register 1
+ O.195  217:                            ;
+ O.196  218:                            ;   ┌───────────────┐
+ O.197  219:                            ;   │7 6 5 4 3 2 1 0│
+ O.198  220:                            ;   └──┬──┴────┬────┘
+ O.199  221:                            ;      │       └──────┤ # Effective Address Bits (0-31 bits)
+ O.200  222:                            ;      │
+ O.201  223:                            ;      └──────────────┤ # PID Bits (0-6 bits)
+ O.202  224:                    
+ O.203  225:  A003 00                   CR1                     .byte   0x00        ; Config Register 1
+ O.204  226:                    
+ O.205  227:                            ;
+ O.206  228:                            ;   MSV(s) - Memory Segment Vector(s)
+ O.207  229:                            ;
+ O.208  230:                            ;                   ┌───────────────┐
+ O.209  231:                            ;                   │7 6 5 4 3 2 1 0│─┤ MSV low
+ O.210  232:                            ;                   └───────────────┘
+ O.211  233:                            ;                   .               .
+ O.212  234:                            ;   ┌───────────────┐               .
+ O.213  235:                            ;   │7 6 5 4 3 2 1 0│─────────────────┤ MSV high
+ O.214  236:                            ;   └───────────────┘               .
+ O.215  237:                            ;   .               .               .
+ O.216  238:                            ;   ┌─┬─┬─┬─────────────────────────┐
+ O.217  239:                            ;   │5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0│
+ O.218  240:                            ;   └┬┴┬┴┬┴────────────┬────────────┘
+ O.219  241:                            ;    │ │ │             └──────────────┤ Upper Effective Address Bits (0-13 bits)
+ O.220  242:                            ;    │ │ │
+ O.221  243:                            ;    │ │ └────────────────────────────┤ Page Dirty
+ O.222  244:                            ;    │ │
+ O.223  245:                            ;    │ └──────────────────────────────┤ Write Enable
+ O.224  246:                            ;    │
+ O.225  247:                            ;    └────────────────────────────────┤ Vector Enable
+ O.226  248:                    
+ O.227  249:                                                    .align  0x10
+ O.228  250:  A010                      segment_vectors
+ O.229  251:                                                    .org    * + (numSegmentVectors << 1)    ; Allocate 2 bytes for each vector.
+ O.230  252:  A210                      segment_vectors_
+ O.231  253:  A210                  mmu_
+ O.232  254:                    
+ O.233  255:                    ;   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+ O.234  256:                    
+ O.235  257:                                               .segment "SBC6502_CODE"
+ O.236  258:                    
+ O.237  259:  E001                      INITIALIZE
+ O.238  260:  E001 A9 00                                        LDA     #0x00    ; Set boot mode (should already be in boot mode after hardware reset.)
+ O.239  261:  E003 8D 00 A0                                     STA     R0
+ O.240  262:                    
+ O.241  263:  E006 A9 80                                        LDA     #configValue
+ O.242  264:                    
+ O.243  265:  E008 8D 01 A0                                     STA     R1
+ O.244  266:                    
+ O.245  267:                            ; Reset segment vectors ...
+ O.246  268:                    
+ O.247  269:  E00B A9 00                                        LDA     #0x00
+ O.248  270:  E00D A2 00                                        LDX     #numSegmentVectors
+ O.249  271:  E00F                          @loop
+ O.250  272:  E00F 9D 10 A0                                     STA     segment_vectors, X      ; Only need to clear 2 highest bits of a segment vector.
+ O.251  273:  E012 CA                                           DEX
+ O.252  274:  E013 CA                                           DEX
+ O.253  275:  E014 D0 F9                                        BNE     @loop
+ O.254  276:                    
+ O.255  277:  E016 60                                           RTS
+ O.256  278:                    
+ O.257  279:                    
+ O.258  280:  E017                      timer_initialize
+ O.259  281:  E017 60                                           RTS
+ O.260  282:                    
+ O.261  283:                    
+ O.262  284:  E018                      map_segment
+ O.263  285:  E018 60                                           RTS
+ O.264  286:                    
+        287:                    ; Allowcate SBC6502 segment vectors for kernel ...
+        288:                    
+        289:  E019                      MAP_KERNAL_MEMORY
+        290:                    
+        291:                            ;      Tag        Physical Address         Effective Address
+        292:                            ;    x00.0000 - 0000.00xx.xxxx.xxxx -> 0000.0000.00xx.xxxx.xxxx - RAM (ZP & Stack & RAM) (1Kb)
+        293:                            ;    x00.0001 - 0000.01xx.xxxx.xxxx -> 1110.1111.10xx.xxxx.xxxx - IO (1Kb)
+        294:                            ;    x00.0010 - 0000.10xx.xxxx.xxxx -> 1111.1111.00xx.xxxx.xxxx - ROM (1Kb)
+        295:                            ;    x00.0011 - 0000.10xx.xxxx.xxxx -> 1111.1111.00xx.xxxx.xxxx - ROM (1Kb)
+        296:                            ;    x00.0100 - 0000.10xx.xxxx.xxxx -> 1111.1111.00xx.xxxx.xxxx - ROM (1Kb)
+        297:                            ;    x00.0101 - 0000.10xx.xxxx.xxxx -> 1111.1111.00xx.xxxx.xxxx - ROM (1Kb)
+        298:                    
+        299:                    ;                               .MMU:.MAP_SEGMENT    .VMK:KERNAL_PID, .ARCH:SBC6502_RAM, .ARCH:SBC6502_eRAM, list=.list
+        300:                    
+        301:                    ;                               .MMU:.map_segment     .VMK:kernel_pid, SBC6502_IO, SBC6502_eio
+        302:                    
+        303:                    ;                               .MMU:.map_segment     .VMK:kernel_pid, SBC6502_ROM + (1 << bitsSegmentSize) *0, SBC6502_eROM + (1 << bitsSegmentSize) *0
+        304:                    
+        305:                    ;                               .MMU:.map_segment     .VMK:kernel_pid, SBC6502_ROM + (1 << bitsSegmentSize) *1, SBC6502_eROM + (1 << bitsSegmentSize) *1
+        306:                    
+        307:                    ;                               .MMU:.map_segment     .VMK:kernel_pid, SBC6502_ROM + (1 << bitsSegmentSize) *2, SBC6502_eROM + (1 << bitsSegmentSize) *2
+        308:                    
+        309:                    ;                               .MMU:.map_segment     .VMK:kernel_pid, SBC6502_ROM + (1 << bitsSegmentSize) *3, SBC6502_eROM + (1 << bitsSegmentSize) *3
+        310:                    
+        311: (0007)                     curTaskSegment         .equ      0x07
+        312:                    
+        313:                    ;
+        314:                    ; SBC6502 Initialization (Power-Up and uP Reset (RST))
+        315:                    ;
+        316:                                               .segment "SBC6502_CODE"
+        317:                    
+        318:  E019              MPU65XX_RESET
+        319:  E019 78                                           SEI                 ; Disable interrupts when entered via code
+        320:  E01A A2 FF                                        LDX     #0xFF       ; Initialize stack pointer
+        321:  E01C 9A                                           TXS
+        322:                    
+        323:  E01D 20 01 E0                                     JSR     .MMU:INITIALIZE
+        324:                    
+        325:  E020 20 00 E0                                     JSR     .ARCH:MAP_KERNAL_MEMORY
+        326:                    
+        327:                    ;
+        328:                    ; VMK Kernel
+        329:                    ;
+        330:                    ;   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+        331:                    
+        332:                                               .segment "MPU65XX_ZP"
+        333:                    
+        334:  0005                      task                   .word
+        335:  0005                      tasks                  .word
+        336:  0005                      curTask                .word
+        337:  0005                      curTaskRegY            .byte
+        338:                    
+        339:                    ;
+        340:                    ; Routine for BRK or IRQ event; BRK instruction will set Break bit.
+        341:                    ;
+        342:                    
+        343:                                               .segment "SBC6502_CODE"
+        344:  E023              MPU65XX_IRQ
+        345:  E023              MPU65XX_BRK
+        346:                    
+        347:                            ; Save current task state.
+        348:                    
+        349:  E023 84 05                                        STY     curTaskRegY
+        350:  E025 A0 00                                        LDY     #0x00
+        351:  E027 91 05                                        STA     [curTask], Y    ; Save A
+        352:  E029 A5 05                                        LDA     curTaskRegY
+        353:  E02B C8                                           INY
+        354:  E02C 91 05                                        STA     [curTask], Y    ; Save Y
+        355:  E02E 8A                                           TXA
+        356:  E02F C8                                           INY
+        357:  E030 91 05                                        STA     [curTask], Y    ; Save X
+        358:  E032 BA                                           TSX
+        359:  E033 8A                                           TXA
+        360:  E034 C8                                           INY
+        361:  E035 91 05                                        STA     [curTask], Y    ; Save S
+        362:                    
+        363:  E037 AA                                           TAX
+        364:  E038 CA                                           DEX
+        365:  E039 BD 00 1D                                     LDA     (.ARCH:curTaskSegment <<  bitsSegmentSize) + 0x0100, X    ; Use X as stack pointer into current task's stack
+        366:  E03C C8                                           INY
+        367:  E03D 91 05                                        STA     [curTask], Y    ; Save P
+        368:  E03F CA                                           DEX
+        369:  E040 BD 00 1D                                     LDA     (.ARCH:curTaskSegment <<  bitsSegmentSize) + 0x0100, X
+        370:  E043 C8                                           INY
+        371:  E044 91 05                                        STA     [curTask], Y    ; Save PCL
+        372:  E046 CA                                           DEX
+        373:  E047 BD 00 1D                                     LDA     (.ARCH:curTaskSegment <<  bitsSegmentSize) + 0x0100, X
+        374:  E04A C8                                           INY
+        375:  E04B 91 05                                        STA     [curTask], Y    ; Save PCH
+        376:                    
+        377:                    
+        378:                            ; Find next task to execute.
+        379:                    
+        380:  E04D A5 05                                        LDA     tasks
+        381:  E04F F0 1C                                        BEQ     Error       ; Error is tasks list structure
+        382:  E051 85 05                                        STA     task
+        383:  E053 A5 06                                        LDA     tasks +1
+        384:  E055 85 06                                        STA     task +1
+        385:                    
+        386:  E057                      CheckNextTaskStatus
+        387:  E057 A0 00                                        LDY     #0x00
+        388:  E059 B1 05                                        LDA     [task], Y   ; Fetch status byte of next task
+        389:  E05B 29 01                                        AND     #0x01
+        390:  E05D D0 0E                                        BNE     ExecuteNextTask     ; Found next task to execute
+        391:                    
+        392:  E05F B1 05                                        LDA     [task], Y   ; Fetch pointer to next tasks in list
+        393:  E061 F0 0A                                        BEQ     Error       ; Error is tasks list structure
+        394:  E063 85 05                                        STA     task
+        395:  E065 C8                                           INY
+        396:  E066 B1 05                                        LDA     [task], Y   ; Fetch pointer to next tasks in list
+        397:  E068 85 06                                        STA     task +1
+        398:                    
+        399:  E06A 4C 57 E0                                     JMP     CheckNextTaskStatus
+        400:                    
+        401:                    
+        402:                    
+        403:  E06D                      ExecuteNextTask
+        404:  E06D                      Error
+        405:                    
+        406:  E06D 40                                           RTI
+        407:                    
+        408:  E06E              MPU65XX_NMI
+        409:  E06E 40                                           RTI
+        410:                    
+        411:                    
+        412:                                               .include     "../CPUs/MOS6502_Vectors.lib.a65", list=.list
+  Q.01  413:                    
+  Q.02  414:                    
+  Q.03  415:                    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  Q.04  416:                    ;                                                                               ;
+  Q.05  417:                    ;                MOS6502 Family uP (MPU65XX) Vectors for MOS6502                ;
+  Q.06  418:                    ;                                                                               ;
+  Q.07  419:                    ;       Version: v1.0.0                                                         ;
+  Q.08  420:                    ;       Author: Craig Gregory (CJG)                                             ;
+  Q.09  421:                    ;                                                                               ;
+  Q.10  422:                    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  Q.11  423:                    
+  Q.12  424:                    ;   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+  Q.13  425:                    
+  Q.14  426:                                               .segment "MPU65XX_VECTORS"
+  Q.15  427:                    
+  Q.16  428:  FFFA              MPU65XX_VECTORS
+  Q.17  429:                    
+  Q.18  430:  FFFA 6E E0        MPU65XX_NMI_VECTOR             .word    MPU65XX_NMI
+  Q.19  431:  FFFC 19 E0        MPU65XX_RESET_VECTOR           .word    MPU65XX_RESET
+  Q.20  432:  FFFE              MPU65XX_IRQ_VECTOR
+  Q.21  433:  FFFE              MPU65XX_BRK_VECTOR
+  Q.22  434:  FFFE 23 E0                                       .word    MPU65XX_IRQ
+  Q.23  435:                    
+  Q.24  436: (FFFF)             MPU65XX_VECTORS_               .equ     * -1
+  Q.25  437:                    
+        438:                    
+        439:                                               .end
+        440:                    

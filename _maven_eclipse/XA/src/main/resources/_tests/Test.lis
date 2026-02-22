@@ -1,0 +1,31 @@
+         1:                    	.org 0x0200
+         2:                    
+         3:  0200 FF FF FF FF  	.byte 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+             0204 FF
+         4:                    
+         5:  0205 18                CLC
+         6:  0206 90 FE        HERE BCC HERE
+         7:                    
+         8:                        .include "abc1.a65", as=.xyz, list=.list
+   A.1   9:                    
+   A.2  10:  0208 EA                NOP
+   A.3  11: (000A)             lmn .equ  10
+   A.4  12:                    
+   A.5  13:                        .include "abc2.a65", as=.def, list=.list
+   B.1  14:                    
+   B.2  15:  0209 EA                NOP
+   B.3  16:  020A A9 0A        abc  LDA  #abc
+   B.4  17:  020C              ghi
+   B.5  18:                    
+   A.6  19:                    
+   A.7  20:  020C A9 0C        abc  LDA  #abc
+   A.8  21:  020E              def
+   A.9  22:                    
+        23:                    
+        24:  020E A9 0C             LDA #ghi
+        25:  0210 A9 0A             LDA #lmn
+        26:                    
+        27:  0212 A9 0E             LDA #.xyz:def
+        28:  0214 A9 0A             LDA #.def:abc
+        29:  0216 A9 0C             LDA #.xyz:abc
+        30:                    

@@ -1,0 +1,12 @@
+         1:                    
+         2:  0000 B1 30        NXTEL    LDA    [$30],Y     ; FETCH ELEMENT
+         3:  0002 C8                    INY
+         4:  0003 D1 30                 CMP    [$30],Y     ; IS IT LARGER THAN THE NEXT ELEMENT?
+         5:  0005 90 10                 BCC    CHKEND
+         7:  0017 CA           CHKEND   DEX                ; END OF LIST?
+         8:  0018 D0 E6                 BNE    NXTEL       ; NO. FETCH NEXT ELEMENT
+         9:  001A 24 32                 BIT    $32         ; YES. EXCHANGE FLAG STILL OFF?
+        10:  001C 30 F9                 BMI    CHKEND      ; NO. GO THROUGH LIST AGAIN
+        11:                    
+        12:  001E 60                    RTS                ; YES. LIST IS NOW ORDERED
+        13:                    

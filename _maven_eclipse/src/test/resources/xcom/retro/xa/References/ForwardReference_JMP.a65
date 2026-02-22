@@ -1,3 +1,0 @@
-
-    JMP AHEAD
-AHEAD
