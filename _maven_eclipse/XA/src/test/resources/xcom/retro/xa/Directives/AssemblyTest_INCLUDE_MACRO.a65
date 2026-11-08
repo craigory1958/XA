@@ -1,0 +1,12 @@
+               
+											
+               .include     "AssemblyTest_INCLUDE_MACRO_LIB.def.a65", as=.STDL, list=.list
+
+               .STDL:.DECLARE   .STDL:V1, list=.list
+               
+               .STDL:.JSRWPB	0, 0, list=.list
+        arg1   .word    $1234
+
+               
+mySub           NOP
+               .STDL:.RTSWPB, list=.list

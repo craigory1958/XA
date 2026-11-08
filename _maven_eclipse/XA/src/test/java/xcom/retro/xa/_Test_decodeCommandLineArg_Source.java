@@ -4,6 +4,7 @@ package xcom.retro.xa ;
 
 
 import static org.junit.Assert.assertEquals ;
+import static xcom.retro.xa.XA$Args.CommandLineOptions ;
 
 import java.io.IOException ;
 import java.util.Arrays ;
@@ -12,15 +13,18 @@ import java.util.HashMap ;
 import java.util.Map ;
 
 import org.apache.commons.cli.CommandLine ;
+import org.apache.commons.cli.DefaultParser ;
 import org.apache.commons.cli.ParseException ;
 import org.junit.BeforeClass ;
 import org.junit.Test ;
 import org.junit.runner.RunWith ;
 import org.junit.runners.Parameterized ;
+import org.slf4j.spi.NOPLoggingEventBuilder ;
 
 import xcom.retro.xa.api.annotations.aProcessor ;
 import xcom.utils4j.JUnits ;
 import xcom.utils4j.data.structured.list.Lists ;
+import xcom.utils4j.resources.Props ;
 
 
 @RunWith(Parameterized.class)
@@ -63,15 +67,17 @@ public class _Test_decodeCommandLineArg_Source {
 
 	public _Test_decodeCommandLineArg_Source(final Object[] args, final Object[] expected) {
 
-		this.args = Arrays.copyOf(args, args.length, String[].class) ;
+		this.args = Arrays.copyOf(args, args.length+1, String[].class) ;
+		this.args[(args.length > 0 ? args.length - 1 : 0)] = "" ;
+		this.args[args.length] = (args.length > 0 ? (String) args[args.length - 1] : "") ;
 
-		if ( expected.length > 0 && expected[0] instanceof Exception )
-			this.exception = (Exception) expected[0] ;
-		
+		if ( (expected.length > 0) && (expected[0] instanceof Exception) )
+			exception = (Exception) expected[0] ;
+
 		else {
 			this.expected = new HashMap<>() ;
-			for ( Object e : expected ) {
-				String[] parts = ((String) e).split("=") ;
+			for ( final Object e : expected ) {
+				final String[] parts = ((String) e).split("=") ;
 				this.expected.put(parts[0], parts[1]) ;
 			}
 		}
@@ -82,10 +88,10 @@ public class _Test_decodeCommandLineArg_Source {
 	public static void setupBeforeClass() throws Exception {
 
 		xa = new XA() ;
-		xa.props = XA.loadXAProperties() ;
+		xa.props = Props.load(XA.class, XA.AppName + ".properties") ;
 
 		final String path = xa.props.getProperty("XA.processor.scan.classpath") ;
-		xa.processors = XA.scanAndLoadByAnnotationType(path, aProcessor.class.getName(), xa.processors) ;
+		xa.processors = XA.scanAndLoadByAnnotationType(path, aProcessor.class.getName(), xa.processors, NOPLoggingEventBuilder.singleton()) ;
 		srcFNExts = XA.buildSourceFilenameExtensions(xa.processors) ;
 	}
 
@@ -93,16 +99,15 @@ public class _Test_decodeCommandLineArg_Source {
 	@Test
 	public void decodeArg_Source() throws IOException, ParseException {
 
-		CommandLine cmd = XA.parseCommandLine(args, XA.CommandLineOptions) ;
-		String srcFSpec = Lists.last(cmd.getArgList()) ;
-		Map<String, String> decodedArgs = XA.decodeArg_Processor(cmd, xa.props, new HashMap<>()) ;
+		final CommandLine cmd = new DefaultParser().parse(CommandLineOptions, args) ;
+		final String srcFSpec = Lists.last(cmd.getArgList()) ;
+		final Map<String, Object> decodedArgs = XA$Args.decodeArg_Processor(cmd, xa.props, new HashMap<>()) ;
 
 		try {
-			final Map<String, String> actual = XA.decodeArg_Source(srcFSpec, srcFNExts, cmd, xa.props, decodedArgs) ;
-			System.out.println(actual) ;
+			final Map<String, Object> actual = XA$Args.decodeArg_Source(srcFSpec, srcFNExts, cmd, xa.props, decodedArgs) ;
 			assertEquals(expected, actual) ;
 		}
-		catch ( Exception actual ) {
+		catch ( final Exception actual ) {
 			JUnits.assertExceptionEquals("", exception, actual) ;
 		}
 	}

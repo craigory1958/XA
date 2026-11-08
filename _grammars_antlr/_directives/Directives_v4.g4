@@ -1,46 +1,38 @@
  
 
-grammar Directives ;
+//
+// Directives (v4)
+//
 
-options { 
-	caseInsensitive = true;	
-}
+directive:  assembler | macro | struct | invocation ;
 
-import Expressions ;
+assembler:  '.' Directives parameterList? ;
+macro:  symbol  '.macro' optionList? ;
+struct:  symbol '.struct' optionList? ;
+invocation:  qualifiedSymbol  parameterList? ;
 
-
-directive:    assembler | macro | struct | invocation   ;
-
-assembler:    '.' Directives argumentList?   ;
-macro:    '.' symbol  '.macro' optionList?   ;
-struct:    '.' symbol '.struct' optionList?   ;
-invocation:    qualifiedSymbol  parameterList?   ;
-
-
-// Assembler directive ...
-argumentList:     ( argument | option ) ( ',' argumentList )?   ; 
 
 // Macro definition ...
-optionList:     option ( ',' optionList )?   ; 
-option:   Identifier assignment?   ;
+optionList:  option ( ',' optionList )? ; 
+option:  identifier assignment? ;
 
-// Macro invocation ...
-parameterList:    ( parameter ( ',' parameterList )? ) | ( ',' parameterList? )   ; 
-parameter:   ( identifier assignment ) | ( '.' symbol assignment ) | ( '.' symbol ) | argument   ;
-
-
-assignment:    '=' ( argument | ( '.' symbol ) )   ;
-argument:    expr   ;
-
-symbol:     Identifier | Directives   ;
-qualifiedSymbol:  ( '.' symbol ':' )* '.' symbol   ;
+// Assembler Directive or Macro Invocation ...
+parameterList:  ( parameter ( ',' parameterList )? ) | ( ',' parameterList? ) ; 
+parameter:  ( identifier assignment ) | ( dottedIdentifier assignment ) | ( dottedIdentifier ) | argument ;
 
 
-label:   Identifier   ;
-scopedLabel:   Identifier   ;
+assignment:  '=' argument ;
+argument:  expr ;
+
+qualifiedSymbol:  ( symbol ':' )* symbol ;
+symbol:  '.' ( Identifier | Directives ) ;
 
 
-Directives:    
+label:  Identifier ;
+scopedLabel:  '@' Identifier ;
+
+
+Directives:
 	'align' | 
 	'byte' | 
 	'end' | 'endif' | 'endmacro' | 'endstruct' | 'equ' | 

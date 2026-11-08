@@ -1,0 +1,13 @@
+         1:                    
+         2:                    
+         3:                    
+         4:                    .mac	.macro	ref
+         0:                    	 	 LDA	${ref}	
+         0:                    		.endmacro
+         5:                    
+         6:                    
+         7:  0000 34 12        abc 	.word	$1234
+         8:                    
+         9:                    		.mac	abc, list=.list
+        10:  0002 A5 00        	 	 LDA	0x00
+        11:                    

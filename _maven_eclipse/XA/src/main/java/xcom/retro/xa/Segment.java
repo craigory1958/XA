@@ -31,7 +31,7 @@ public class Segment {
 		blocks.add(new ByteBlock()) ;
 	}
 
-	
+
 	public void allocateBytes(final byte[] bytes) {
 		loc = Lists.last(blocks).allocateBytes(bytes) ;
 	}

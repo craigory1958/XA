@@ -1,0 +1,18 @@
+         1:                    
+         2:                    
+         3:                    	.include "AssemblyTest_INCLUDE_as_abc.a65", as=.ABC, list=.list
+   A.1   4:                    
+   A.2   5: (0001)             a1	.equ	0x01
+   A.3   6: (0002)             a2	.equ	0x02
+   A.4   7:                    
+         8:                    
+         9:                    	.include "AssemblyTest_INCLUDE_as_abc.a65", as=.XYZ, list=.list
+   B.1  10:                    
+   B.2  11: (0001)             a1	.equ	0x01
+   B.3  12: (0002)             a2	.equ	0x02
+   B.4  13:                    
+        14:                    
+        15:  0000 A9 02        	LDA	#.XYZ:a2
+        16:                    
+        17:  0002 A9 01        	LDA	#.ABC:a1
+        18:                    

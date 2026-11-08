@@ -1,13 +1,8 @@
  
 
-grammar Directives ;
-
-options { 
-	caseInsensitive = true;	
-}
-
-import Expressions ;
-
+//
+// Directives (v2)
+//
 
 directive:  assembler | macro | invocation ;
 

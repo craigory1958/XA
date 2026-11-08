@@ -18,7 +18,9 @@ import xcom.retro.xa.SmokeTests.__Test_xcom_retro_xa_SmokeTests_ ;
 	__Test_xcom_retro_xa_Directives_.class,
 	__Test_xcom_retro_xa_Parsing_.class,
 	__Test_xcom_retro_xa_References_.class,
-	__Test_xcom_retro_xa_SmokeTests_.class
+	__Test_xcom_retro_xa_SmokeTests_.class,
+	_Test_decodeCommandLineArg_Source.class,
+	_Test_parseCommandLine.class
 })
 //@formatter:on
 

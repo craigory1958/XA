@@ -3,7 +3,7 @@
 package xcom.retro.xa.processors ;
 
 
-import xcom.retro.xa.XA.AssemblyContext ;
+import xcom.retro.xa.AssemblyContext ;
 import xcom.retro.xa.antlr.processors.Z80.Z80_Lexer ;
 import xcom.retro.xa.antlr.processors.Z80.Z80_Parser ;
 import xcom.retro.xa.api.annotations.aProcessor ;

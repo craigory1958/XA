@@ -7,6 +7,8 @@ import java.io.IOException ;
 import java.util.List ;
 import java.util.UUID ;
 
+import org.apache.commons.io.FilenameUtils ;
+
 import xcom.retro.xa.api.interfaces.iSource ;
 
 
@@ -14,33 +16,19 @@ public class BlockSource implements iSource {
 
 	//@formatter:off
 
-	String qualifier ;
-	@Override
-	public String qualifier() { return qualifier ; }
+	int fn ;
 
 	String fSpec ;
-	@Override
-	public String fSpec() { return fSpec ; }
 
 	boolean list ;
-	@Override
-	public boolean list() { return list ; }
-	public BlockSource list(final boolean list) {
-		this.list = list ;
-		return this ;
-	}
+
+	int ln ;
+
+	String qualifier ;
 
 	String scopeID ;
-	@Override
-	public String scopeID() { return scopeID ; }
 
-	int sourceID ;
-	@Override
-	public int sourceID() { return sourceID ; }
-
-	int sourceLN ;
-	@Override
-	public int sourceLN() { return sourceLN ; }
+	Segment segment ;
 
 	//@formatter:on
 
@@ -49,12 +37,13 @@ public class BlockSource implements iSource {
 	List<String> lines ;
 
 
-	public BlockSource(final int sourceID, final int ln, final List<String> lines, final boolean list, final String qualifier) {
+	public BlockSource(final int fn, final int ln, final List<String> lines, final boolean list, final Segment segment, final String qualifier) {
 
-		this.sourceID = sourceID ;
-		sourceLN = ln - 1 ;
+		this.fn = fn ;
+		this.ln = ln - 1 ;
 		this.lines = lines ;
 		this.list = list ;
+		this.segment = segment ;
 		this.qualifier = qualifier ;
 
 		scopeID = UUID.randomUUID().toString().replaceAll("[-]", "") ;
@@ -62,15 +51,53 @@ public class BlockSource implements iSource {
 	}
 
 
+	//
+	// Implements iSource ...
+	//
+
+	//@formatter:off
+
+	@Override
+	public String fSpec() { return fSpec ; }
+
+	@Override
+	public boolean list() { return list ; }
+
 	@Override
 	public String next() throws IOException {
-		sourceLN++ ;
+		ln++ ;
 		return (curLN < lines.size() ? lines.get(curLN++) : null) ;
 	}
-
 
 	@Override
 	public String peek() throws IOException {
 		return null ;
+	}
+
+	@Override
+	public String qualifier() { return qualifier ; }
+
+	@Override
+	public String scopeID() { return scopeID ; }
+
+	@Override
+	public Segment segment() { return segment ; }
+
+	@Override
+	public int fn() { return fn ; }
+
+	@Override
+	public int ln() { return ln ; }
+
+	//@formatter:on
+
+
+	//
+	//
+	//
+
+	@Override
+	public String toString() {
+		return String.format("%s: (ln:%d id:%d qual:%s list:%b)", FilenameUtils.getName(fSpec), ln, fn, qualifier, list) ;
 	}
 }

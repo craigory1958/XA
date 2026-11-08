@@ -1,0 +1,18 @@
+         1:                    
+         2:                    .abc	.macro
+         0:                    @loop
+         0:                    		JMP	@loop
+         0:                    		JMP def
+         0:                    		.endmacro
+         3:                    
+         4:                    		.abc    list=.list
+         5:  0000              @loop
+         6:  0000 4C 00 00     		JMP	@loop
+         7:  0003 4C 0C 00     		JMP def
+         8:                    		.abc    list=.list
+         9:  0006              @loop
+        10:  0006 4C 06 00     		JMP	@loop
+        11:  0009 4C 0C 00     		JMP def
+        12:                    
+        13:  000C              def
+        14:                    

@@ -6,15 +6,19 @@ package xcom.retro.xa.expressions.value ;
 import static xcom.retro.xa.expressions.ExpressionUtils.EXPR_asInteger ;
 import static xcom.retro.xa.expressions.ExpressionUtils.EXPR_asString ;
 
+import java.nio.ByteBuffer ;
 import java.util.Map ;
 
-import com.google.common.primitives.Bytes ;
-
-import xcom.retro.xa.Moniker ;
+import xcom.retro.xa.AssemblyContext ;
+import xcom.retro.xa.Identifier ;
 import xcom.retro.xa.expressions._ExprNode ;
 
 
 public abstract class _ValueNode extends _ExprNode {
+
+	//
+	// Attributes ...
+	//
 
 	//@formatter:off
 
@@ -24,16 +28,30 @@ public abstract class _ValueNode extends _ExprNode {
 	//@formatter:on
 
 
-	public _ValueNode(final byte[] value) {
+	//
+	// Constructor(s) ...
+	//
+
+	public _ValueNode(final AssemblyContext actx, final byte[] value) {
+
+		super(actx) ;
+
 		this.value = value.clone() ;
 	}
 
 
-	public _ValueNode(final byte value) {
+	public _ValueNode(final AssemblyContext actx, final byte value) {
+
+		super(actx) ;
+
 		final byte[] b = { value } ;
 		this.value = b ;
 	}
 
+
+	//
+	// Instance methods ...
+	//
 
 	public Object getValue() {
 
@@ -44,14 +62,28 @@ public abstract class _ValueNode extends _ExprNode {
 	}
 
 
+	//
+	// Implements abstract class ...
+	//
+
 	@Override
-	public _ValueNode eval(final Map<String, Moniker> symbols) {
+	public _ValueNode eval(final Map<String, Identifier> identifiers) {
 		return this ;
 	}
 
 
 	@Override
+	public String toPostfix(final StringBuilder pfx) {
+		return pfx.append(toString()).append(" ").toString() ;
+	}
+
+
+	//
+	//
+	//
+
+	@Override
 	public String toString() {
-		return Bytes.asList(value).toString() ;
+		return String.valueOf(ByteBuffer.wrap(value).getInt()) ;
 	}
 }

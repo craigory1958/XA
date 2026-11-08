@@ -1,128 +1,74 @@
  
 
-grammar Expressions ;
-
-options { 
-	caseInsensitive = true;	
-}
-
-
 //
-// Directives.g4
+// Expresions (v3)
 //
 
-directive:    assembler | macro | struct | invocation   ;
+expr:  term ( ( binary | comparison ) term )* ;
 
-assembler:    '.' Directives parameterList?   ;
-macro:    '.' symbol  '.macro' optionList?   ;
-struct:    '.' symbol '.struct' optionList?   ;
-invocation:    qualifiedSymbol  parameterList?   ;
+term:  org | scopedIdentifier | qualifiedIdentifier | dottedIdentifier | literal | '(' expr ')' | unary term ;
+org:  '*' ;
 
 
-// Assembler directive ...
-argumentList:     ( argument | option ) ( ',' argumentList )?   ; 
-
-// Macro definition ...
-optionList:     option ( ',' optionList )?   ; 
-option:   Identifier assignment?   ;
-
-// Macro invocation ...
-parameterList:    ( parameter ( ',' parameterList )? ) | ( ',' parameterList? )   ; 
-parameter:   ( identifier assignment ) | ( '.' symbol assignment ) | ( '.' symbol ) | argument   ;
+dottedIdentifier:  '.' identifier ;
+qualifiedIdentifier:  ( dottedIdentifier ':' )* ( identifier ':' )* identifier ;
+scopedIdentifier:  '@' identifier ;
+identifier:  Identifier | Directives | ( '${' Identifier '}' ) ;
 
 
-assignment:    '=' ( argument | ( '.' symbol ) )   ;
-argument:    expr   ;
-
-symbol:     Identifier | Directives   ;
-qualifiedSymbol:  ( '.' symbol ':' )* '.' symbol   ;
+binary:  integerAdd | integerSubtract | integerMultiply | integerDivide | bitwiseShiftLeft | bitwiseShiftRight | bitwiseAnd | bitwiseOr | logicalAnd | logicalOr ;
+comparison:  equal | notEqual | lessThan | greaterThan | '<=' | '>=' ;
+unary:  plus | minus | highByte | lowByte | logicalNot ;
 
 
-label:   Identifier   ;
-scopedLabel:   Identifier   ;
+integerAdd:  '+' ;
+integerSubtract:  '-' ;
+integerMultiply:  '*' ;
+integerDivide:  '/' ;
+
+bitwiseShiftLeft:  '<<' ;
+bitwiseShiftRight:  '>>' ;
+bitwiseAnd:  '&' ;
+bitwiseOr:  '|' ;
+
+logicalAnd:  '&&' ;
+logicalOr:  '||' ;
+
+equal:  '==' ;
+notEqual:  '!=' ;
+lessThan:  '<' ;
+greaterThan:  '>' ;
+
+plus:  '+' ;
+minus:  '-' ;
+highByte:  '<' ;
+lowByte:  '>' ;
+logicalNot:  '!' ;
 
 
-Directives:    
-	'align' | 
-	'byte' | 
-	'end' | 'endif' | 'endmacro' | 'endstruct' | 'equ' | 
-	'if' | 'ifdef' | 'ifndef' | 'include' | 
-	'list' |
-	'nolist' |
-	'org' | 
-	'page' |
-	'segment' |
-	'word'   
-	;
+literal:  numericLiteral | alphanumericLiteral ; 
+
+numericLiteral:  binaryLiteral | octalLiteral | decimalLiteral | hexLiteral ; 
+alphanumericLiteral:  characterLiteral | stringLiteral ; 
 
 
-//
-// Expresions.g4
-//
+binaryLiteral:  BinaryLiteral ;
+octalLiteral:  OctalLiteral ;
+decimalLiteral:  DecimalLiteral ;
+hexLiteral:  HexLiteral ;
 
-expr:    term ( ( binary | comparison ) term )*   ;
-
-term:    org | ( identifier | scopedIdentifier | qualifiedIdentifier )  | literal | '(' expr ')' | unary term   ;
-org:   '*'   ;
-
-identifier:    Identifier | Directives   ;
-qualifiedIdentifier:  ( '.' symbol ':' )* Identifier    ;
-scopedIdentifier:    '@' Identifier   ;
-
-
-binary:   integerAdd | integerSubtract | integerMultiply | integerDivide | bitwiseShiftLeft | bitwiseShiftRight | bitwiseAnd | bitwiseOr | logicalAnd |  logicalOr   ;
-comparison:   equal | notEqual | lessThan | greaterThan | '<=' | '>='   ;
-unary:    plus | minus | highByte | lowByte | logicalNot   ;
-
-
-integerAdd:   '+'   ;
-integerSubtract:   '-'   ;
-integerMultiply:   '*'   ;
-integerDivide:   '/'   ;
-
-bitwiseShiftLeft:   '<<'   ;
-bitwiseShiftRight:   '>>'   ;
-bitwiseAnd:   '&'   ;
-bitwiseOr:   '|'   ;
-
-logicalAnd:   '&&'   ;
-logicalOr:   '||'   ;
-
-equal:   '=='   ;
-notEqual:   '!='   ;
-lessThan:   '<'   ;
-greaterThan:   '>'   ;
-
-plus:   '+'   ;
-minus:   '-'   ;
-highByte:   '<'   ;
-lowByte:   '>'   ;
-logicalNot:   '!'   ;
-
-
-literal:    numericLiteral | alphanumericLiteral   ; 
-
-numericLiteral:    binaryLiteral | octalLiteral | decimalLiteral | hexLiteral   ; 
-alphanumericLiteral:   characterLiteral | stringLiteral   ; 
-
-
-binaryLiteral:     BinaryLiteral   ;
-octalLiteral:     OctalLiteral   ;
-decimalLiteral:    DecimalLiteral   ;
-hexLiteral:     HexLiteral   ;
-
-characterLiteral:    CharacterLiteral   ;
-stringLiteral:    StringLiteral   ;
+characterLiteral:  CharacterLiteral ;
+stringLiteral:  StringLiteral ;
 
  
-BinaryLiteral:   '0b' [0-1]+   ;
-OctalLiteral:    '0o' [0-7]+   ;
-DecimalLiteral:   '0d'? [0-9]+   ;
-HexLiteral:    ('$' | '0x') [0-9A-F]+   ;
+BinaryLiteral:  '0b' [0-1]+ ;
+OctalLiteral:  '0o' [0-7]+ ;
+DecimalLiteral:  '0d'? [0-9]+ ;
+HexLiteral:  ('$' | '0x') [0-9A-F]+ ;
 
 
-CharacterLiteral:    '\'' ~["]   ;
-StringLiteral:    '"' ~["]* '"'   ;
+CharacterLiteral:  '\'' ~["] ;
+StringLiteral:  '"' ~["]* '"' ;
 
-Identifier:    [A-Z_] [A-Z0-9_]*   ;
-IdentifierExtension:    ':  ' '.'? [A-Z_] [A-Z0-9_]*   ;
+Identifier:  [A-Z_] [A-Z0-9_]* ;
+IdentifierExtension:  ':  ' '.'? [A-Z_] [A-Z0-9_]* ;

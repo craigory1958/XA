@@ -7,9 +7,9 @@ import java.util.Map ;
 
 import org.antlr.v4.runtime.ParserRuleContext ;
 
+import xcom.retro.xa.AssemblyContext ;
 import xcom.retro.xa.Operand ;
 import xcom.retro.xa.Segment ;
-import xcom.retro.xa.XA.AssemblyContext ;
 import xcom.retro.xa.api.annotations.aDirective ;
 import xcom.retro.xa.api.interfaces.iDirective ;
 import xcom.utils4j.data.structured.map.Maps ;
@@ -32,7 +32,7 @@ public class SEGMENT implements iDirective {
 		final Map<String, Operand> _operands = actx.statement().operands() ;
 
 		final Operand operand1 = Maps.firstEntryValue(_operands) ;
-		final String value = (String) operand1.assignment().eval(actx.symbols()).getValue() ;
+		final String value = (String) operand1.assignment().eval(actx.identifiers()).getValue() ;
 
 		if ( !actx.segments().containsKey(value) )
 			actx.segments().put(value, new Segment(value)) ;

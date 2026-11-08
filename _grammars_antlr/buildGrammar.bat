@@ -14,17 +14,17 @@ rem IF NOT "%4"=="" SET dirVer=%4
 rem SET exprVer=v3
 rem IF NOT "%5"=="" SET exprVer=%5
 
-SET assVer=v1
-IF NOT "%5"=="" SET assVer=%5
+SET asmVer=v1
+IF NOT "%5"=="" SET asmVer=%5
 
-SET sourceDir="H:\_cwg-base__Home\Computer Archtecture\Retro Computing\xa\grammars"
-SET targetDir="H:\_cwg-base__Home\Computer Archtecture\Retro Computing\xa\__eclipse\xa\target\generated-sources\antlr4"
+SET sourceDir="H:\_cwg-base__Home\Computer-Architecture\Retro-Computing\xa\grammars"
+SET targetDir="H:\_cwg-base__Home\Computer-Architecture\Retro-Computing\xa\__eclipse\xa\target\generated-sources\antlr4"
 
 
 COPY %sourceDir%\processors\_%uPfam%\%uP%_%uPver%.g4 %uP%_.g4
 rem COPY %sourceDir%\_directives\Directives_%dirVer%.g4 Directives.g4
 rem COPY %sourceDir%\_expressions\Expressions_%exprVer%.g4 Expressions.g4
-COPY %sourceDir%\_assemblies\Assembly_%assVer%.g4 Assembly.g4
+COPY %sourceDir%\_assemblies\Assembly_%asmVer%.g4 Assembly.g4
 
 
 java org.antlr.v4.Tool  -o %targetDir%\xcom\retro\xa\antlr\processors\%uP%  -package xcom.retro.xa.antlr.processors.%uP% %uP%_.g4

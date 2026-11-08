@@ -26,14 +26,11 @@ import java.io.IOException ;
 import java.io.PrintWriter ;
 import java.lang.annotation.Annotation ;
 import java.nio.charset.Charset ;
-import java.util.ArrayList ;
 import java.util.Arrays ;
 import java.util.HashMap ;
-import java.util.List ;
 import java.util.Map ;
 import java.util.Properties ;
 import java.util.Set ;
-import java.util.Stack ;
 
 import org.antlr.v4.runtime.CharStream ;
 import org.antlr.v4.runtime.CharStreams ;
@@ -46,6 +43,7 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker ;
 import org.apache.commons.cli.CommandLine ;
 import org.apache.commons.cli.DefaultParser ;
 import org.apache.commons.io.FileUtils ;
+import org.apache.commons.lang3.StringUtils ;
 import org.fest.reflect.core.Reflection ;
 import org.reflections.Reflections ;
 import org.slf4j.Logger ;
@@ -58,10 +56,7 @@ import xcom.retro.xa.api.annotations.aProcessor ;
 import xcom.retro.xa.api.interfaces.iDirective ;
 import xcom.retro.xa.api.interfaces.iExtruder ;
 import xcom.retro.xa.api.interfaces.iProcessor ;
-import xcom.retro.xa.api.interfaces.iSource ;
 import xcom.retro.xa.assembly.AssemblyUtils ;
-import xcom.retro.xa.directives.dir.MACRO ;
-import xcom.retro.xa.directives.dir.STRUCT ;
 import xcom.retro.xa.extruders.AssemblyLister ;
 import xcom.retro.xa.extruders.XRefLister ;
 import xcom.utils4j.CLArgs ;
@@ -78,112 +73,13 @@ public class XA {
 	}
 
 
-	public class AssemblyContext {
-
-		//@formatter:off
-
-		CommandLine cmd ;
-
-		Map<String, Object> decodedArgs ;
-		public Map<String, Object> decodedArgs() { return decodedArgs ; }
-
-		Map<String, iDirective> directives ;
-		public Map<String, iDirective> directives() { return directives ; }
-
-		Moniker identifier ;
-		public Moniker identifier() { return identifier ; }
-		public AssemblyContext identifier(final Moniker identifier) {
-			this.identifier = identifier ;
-			return this ;
-		}
-
-		Map<String, Moniker> symbols = new HashMap<>() ;
-		public Map<String, Moniker> symbols() { return symbols ; }
-
-		Stack<Boolean> ifBlocks ;
-		public Stack<Boolean> ifBlocks() { return ifBlocks ; }
-
-		boolean list ;
-		public boolean list() { return list ; }
-		public AssemblyContext list(final boolean list) {
-			this.list = list ;
-			return this ;
-		}
-
-		int ln ;
-		public int ln() { return ln ; }
-
-		Map<String, MACRO> macros = new HashMap<>() ;
-		public Map<String, MACRO> macros() { return macros ; }
-
-		AssemblyPhases phase ;
-		public AssemblyPhases phase() { return phase ; }
-
-		Segment segment ;
-		public Segment segment() { return segment ; }
-		public AssemblyContext segment(final Segment segment) {
-			this.segment = segment ;
-			return this ;
-		}
-
-		Map<String, Segment> segments = new HashMap<>() ;
-		public Map<String, Segment> segments() { return segments ; }
-
-		Stack<iSource> source = new Stack<>() ;
-		public Stack<iSource> source() { return source ; }
-
-		List<iSource> sources = new ArrayList<>() ;
-		public List<iSource> sources() { return sources ; }
-
-		Statement statement ;
-		public Statement statement() { return statement ; }
-		public AssemblyContext statement(final Statement statement) {
-			this.statement = statement ;
-			return this ;
-		}
-
-		List<Statement> statements = new ArrayList<>() ;
-		public List<Statement> statements() { return statements ; }
-
-		Map<String, STRUCT> structs = new HashMap<>() ;
-		public Map<String, STRUCT> structs() { return structs ; }
-
-		Lexer lexer ;
-		public Lexer lexer() { return lexer ; }
-
-		Parser parser ;
-		public Parser parser() { return parser ; }
-
-		XA$Args $args ;
-		public XA$Args $args() { return $args ; }
-
-		//@formatter:on
-
-
-		public AssemblyContext() {
-
-			list = true ;
-			ifBlocks = new Stack<>() ;
-			ifBlocks.push(true) ;
-
-			ln = 0 ;
-		}
-
-
-		public boolean assembleEnable() {
-			return ifBlocks.peek() ;
-		}
-	}
-
-
-	private static final Logger Logger = LoggerFactory.getLogger(XA.class) ;
 	private static final Logger Console = LoggerFactory.getLogger(ConsoleLoggerName) ;
 
 	static final String AppClassname = XA.class.getName() ;
 	static final String AppDesc = XA.class.getSimpleName() + " - 6502 Cross Assembler" ;
 	static final String AppName = XA.class.getSimpleName() ;
 	static final String AppSee = "See https://github.com/craigory1958/XA" ;
-	static final String AppUsage = "java -cp " + XA.class.getSimpleName().toLowerCase() + ".jar" + XA.class.getName() + "[options] src" ;
+	static final String AppUsage = "java -cp " + XA.class.getSimpleName().toLowerCase() + ".jar" + XA.class.getName() + " [options] src" ;
 	static final String AppVersion = "v1.0.0" ;
 
 
@@ -200,12 +96,23 @@ public class XA {
 	}
 
 
+	public XA(CommandLine cmd, XA$Args $args, Map<String, Object> decoded, Properties props) {
+		
+		actx = new AssemblyContext() ;
+		
+		actx.cmd = cmd ;
+		actx.$args = $args ;
+		actx.decodedArgs = decoded ;
+		this.props = props ;
+	}
+
+
 	XA init() throws Exception {
 
 		actx.phase = Init ;
 
 		{
-			aProcessor processor = (aProcessor) processors.get(actx.decodedArgs.get($Arg_Processor)).getAnnotation(aProcessor.class) ;
+			final aProcessor processor = processors.get(actx.decodedArgs.get($Arg_Processor)).getAnnotation(aProcessor.class) ;
 
 			final Class<? extends Lexer> lexerClass = Reflection.type(processor.lexar().getName()).loadAs(Lexer.class) ;
 			actx.lexer = Reflection.constructor().withParameterTypes(CharStream.class).in(lexerClass).newInstance(CharStreams.fromString("")) ;
@@ -229,53 +136,71 @@ public class XA {
 	XA parse() throws IOException {  // Pass 1
 
 		actx.phase = Parse ;
-
-		actx.sources.add(new FileSource(actx.sources.size(), (String) actx.decodedArgs.get("source"), actx.list())) ;
-		actx.source.push(Lists.last(actx.sources)) ;
+		logEvent(actx.$args(), actx.phase(), Parse.name(), "\nBeginning {} phase ...\n", Parse.name()) ;
 
 		actx.segments.put("<default>", new Segment("<default>")) ;
 		actx.segment = actx.segments.get("<default>") ;
+
+		actx.sources.add(new FileSource(actx.sources.size(), (String) actx.decodedArgs.get("source"), actx.list(), actx.segments.get("<default>"))) ;
+		actx.source.push(Lists.last(actx.sources)) ;
 		final ParseTreeWalker walker = new ParseTreeWalker() ;
 
 		while ( !actx.source.isEmpty() ) {
 
-			actx.list(actx.source.peek().list()) ;
-
 			for ( String line; (line = actx.source.peek().next()) != null; ) {
 
+				actx.list(actx.source.peek().list()) ;
+
 				line = line.stripTrailing() ;
-				actx.$args().getEventLogger("src").log(">>>{}", line) ;
+				logEvent(actx.$args(), actx.phase(), "src", ">>>{}", line) ;
+				logEvent(actx.$args(), actx.phase(), "srcs", "(srcs) {}: sources: {}", this.getClass(), actx.sources()) ;
+				logEvent(actx.$args(), actx.phase(), "srcs", "(srcs) {}: source: {}", this.getClass(), actx.source()) ;
 
 
 				if ( actx.list() )
-					actx.ln += 1 ;
+					actx.sn += 1 ;
 
 				actx.statements.add( //
 						new Statement( //
-								actx.source.peek().sourceID(), //
-								actx.source.peek().sourceLN(), //
-								line, actx.segment.loc, //
+								actx.source.peek().fn(), //
+								actx.source.peek().ln(), //
+								line, //
+								actx.segment.loc, //
 								actx.list(), //
-								actx.assembleEnable() //
+								actx.assemblyEnable() //
 						)) ;
 
 				actx.statement = Lists.last(actx.statements) ;
-				actx.statement.ln(actx.ln) ;
+				actx.statement.sn(actx.sn) ;
 
-//				actx.lexer.setInputStream(CharStreams.fromString(line)) ;
-//				actx.parser.setTokenStream(new CommonTokenStream(actx.lexer)) ;
-//
-//				actx.statement.pctx = Reflection.method("statement").withReturnType(ParserRuleContext.class).in(actx.parser).invoke() ;
+				logEvent(actx.$args(), actx.phase(), "srcs", "(srcs) {}: statement: {}", this.getClass(), actx.statement) ;
+
+				if ( !StringUtils.trimToEmpty(line).isEmpty() && !StringUtils.trimToEmpty(line).startsWith(";") ) {
+					logEvent(actx.$args(), actx.phase(), "ids", "(ids) {}: identifiers: {}", this.getClass(), actx.identifiers()) ;
+					logEvent(actx.$args(), actx.phase(), "MACRO", "(MACRO) {}: macros: {}", this.getClass(), actx.macros()) ;
+				}
+
+
 				actx.statement.pctx = AssemblyUtils.ASMB_parseStatement(line, actx.lexer, actx.parser) ;
 
+				logEvent(actx.$args(), actx.phase(), "asmb", "(asmb) {}: parse statement w/{})", this.getClass(), processor.getClass().getSimpleName()) ;
 				walker.walk(processor, actx.statement.pctx) ;
 
 				if ( actx.statement.assemblyEnable() )
 					actx.statement.block = Lists.last(actx.segment.blocks) ;
+
+				if ( actx.statement.bytes() != null )
+					logEvent(actx.$args(), actx.phase(), "bytes", "(bytes) {}: bytes: {}", this.getClass(), actx.statement.bytes()) ;
 			}
+
+			if ( actx.source.peek().segment() != null )
+				actx.segment(actx.source.peek().segment()) ;
 
 			actx.source.pop() ;
 		}
+
+		logEvent(actx.$args(), actx.phase(), "ids", "(ids) {}: identifiers: {}", this.getClass(), actx.identifiers()) ;
+		logEvent(actx.$args(), actx.phase(), "MACRO", "(MACRO) {}: macros: {}", this.getClass(), actx.macros()) ;
 
 
 		return this ;
@@ -285,17 +210,21 @@ public class XA {
 	XA assemble() { // Pass 2
 
 		actx.phase = Assemble ;
-//		System.err.println(actx.symbols.keySet()) ;
+		logEvent(actx.$args(), actx.phase(), Assemble.name(), "\nBeginning {} phase ...\n", Assemble.name()) ;
+		logEvent(actx.$args(), actx.phase(), "ids", "(ids) {}: identifiers: {}", this.getClass(), actx.identifiers()) ;
+		logEvent(actx.$args(), actx.phase(), "MACRO", "(MACRO) {}: macros: {}", this.getClass(), actx.macros()) ;
 
 		for ( final Statement statement : actx.statements ) {
 
 			actx.statement = statement ;
-			Console.debug("***{}", actx.statement.line) ;
+			logEvent(actx.$args(), actx.phase(), "src", ">>>{}", actx.statement.line) ;
 
 			if ( actx.statement.assemblyCallbackMethod != null )
 				Reflection.method(actx.statement.assemblyCallbackMethod).in(actx.statement.assemblyCallbackObject).invoke() ;
-		}
 
+			if ( actx.statement.bytes() != null )
+				logEvent(actx.$args(), actx.phase(), "bytes", "(bytes) {}: bytes: {}", this.getClass(), actx.statement.bytes()) ;
+		}
 
 		return this ;
 	}
@@ -304,14 +233,17 @@ public class XA {
 	XA generate() throws IOException {
 
 		actx.phase = Generate ;
-//		System.err.println(actx.symbols.keySet()) ;
+		logEvent(actx.$args(), actx.phase(), Generate.name(), "\nBeginning {} phase ...\n", Generate.name()) ;
+		logEvent(actx.$args(), actx.phase(), "gen", "(gen) {}: identifiers: {}", this.getClass(), actx.identifiers) ;
 
-		for ( final Statement statement : actx.statements ) {
-			actx.statement = statement ;
+		if ( actx.cmd.hasOption($Arg_Binary) )
+			for ( final Statement statement : actx.statements ) {
+				actx.statement = statement ;
+				logEvent(actx.$args(), actx.phase(), "src", ">>>{}", actx.statement.line) ;
 
-			if ( actx.statement.assemblyEnable() && (actx.statement.block != null) && (actx.statement.bytes != null) && (actx.statement.bytes.length > 0) )
-				actx.statement.block.fillBytes(actx.statement.loc, actx.statement.bytes) ;
-		}
+				if ( actx.statement.assemblyEnable() && (actx.statement.block != null) && (actx.statement.bytes != null) && (actx.statement.bytes.length > 0) )
+					actx.statement.block.fillBytes(actx.statement.loc, actx.statement.bytes) ;
+			}
 
 
 		return this ;
@@ -321,6 +253,7 @@ public class XA {
 	XA extrude() throws IOException {
 
 		actx.phase = Extrude ;
+		logEvent(actx.$args(), actx.phase(), Extrude.name(), "\nBeginning {} phase ...\n", Extrude.name()) ;
 
 		if ( actx.cmd.hasOption($Arg_Binary) ) {
 
@@ -331,11 +264,11 @@ public class XA {
 			try ( FileWriter fileWriter = new FileWriter((String) actx.decodedArgs.get($Arg_Binary)); PrintWriter out = new PrintWriter(fileWriter); ) {
 				extruder.extrude(out, actx) ;
 			}
-		}
 
-		Console.info("") ;
-		Console.info((String) actx.decodedArgs.get($Arg_Binary)) ;
-		Console.info(FileUtils.readFileToString(new File((String) actx.decodedArgs.get($Arg_Binary)), Charset.defaultCharset())) ;
+			Console.info("") ;
+			Console.info((String) actx.decodedArgs.get($Arg_Binary)) ;
+			Console.info(FileUtils.readFileToString(new File((String) actx.decodedArgs.get($Arg_Binary)), Charset.defaultCharset())) ;
+		}
 
 
 		return this ;
@@ -345,6 +278,7 @@ public class XA {
 	XA list() throws IOException {
 
 		actx.phase = List ;
+		logEvent(actx.$args(), actx.phase(), List.name(), "\nBeginning {} phase ...\n", List.name()) ;
 
 		if ( actx.cmd.hasOption($Arg_List) ) {
 
@@ -369,6 +303,7 @@ public class XA {
 	XA xref() throws IOException {
 
 		actx.phase = XRef ;
+		logEvent(actx.$args(), actx.phase(), XRef.name(), "\nBeginning {} phase ...\n", XRef.name()) ;
 
 		if ( actx.cmd.hasOption($Arg_XRef) ) {
 
@@ -398,7 +333,7 @@ public class XA {
 
 		// Load properties ...
 
-		Properties props = Props.load(XA.class, AppName + ".properties") ;
+		final Properties props = Props.load(XA.class, AppName + ".properties") ;
 
 
 		// Parse and decode base command line arguments ...
@@ -409,55 +344,51 @@ public class XA {
 
 		final CommandLine cmd = new DefaultParser().parse(CommandLineOptions, _args) ;
 
-		XA$Args $args = new XA$Args(cmd, props, _args, Console) ;
+		final XA$Args $args = new XA$Args(cmd, props, _args, Console) ;
 		$args.loadAppProps(props, AppClassname, AppDesc, AppName, AppSee, AppUsage, AppVersion) ;
 
-		Map<String, Object> decoded = $args.decodeCommandLineArgs(cmd, CommandLineOptions, props, ExitOnHelpOrVersion, $args.decodedArgs()) ;
+		final Map<String, Object> decoded = $args.decodeCommandLineArgs(cmd, CommandLineOptions, props, ExitOnHelpOrVersion, $args.decodedArgs()) ;
 
-		$args.getEventLogger("init").log("props: {}", props) ;
-		$args.getEventLogger("init").log("args: {}", Arrays.asList(_args)) ;
-		$args.getEventLogger("init").log("decodedArgs: {}", decoded) ;
+		logEvent($args, Init, "init", "(init) {}: props: {}", XA.class, props) ;
+		logEvent($args, Init, "init", "(init) {}: args: {}", XA.class, Arrays.asList(_args)) ;
+		logEvent($args, Init, "init", "(init) {}: decodedArgs: {}", XA.class, decoded) ;
 
 
 		// Instantiate and process ...
 
-		final XA $ = new XA() ;
-		$.actx.cmd = cmd ;
-		$.actx.$args = $args ;
-		$.actx.decodedArgs = decoded ;
-		$.props = props ;
+		final XA $ = new XA(cmd, $args, decoded, props) ;
 
 		{
 			final String path = $.props.getProperty("XA.processor.scan.classpath") ;
-			$.processors = scanAndLoadByAnnotationType(path, aProcessor.class.getName(), $.processors, $.actx.$args.getEventLogger("init")) ;
+			$.processors = scanAndLoadByAnnotationType(path, aProcessor.class.getName(), $.processors, ASMB_getEventLogger($.actx.$args(), "init")) ;
 
-			$.actx.$args.getEventLogger("init").log("processors: {}", $.processors) ;
+			logEvent($.actx.$args(), Init, "init", "(init) {}: processors: {}", XA.class, $.processors) ;
 		}
 
 		{
 			final String path = $.props.getProperty("XA.extruder.scan.classpath") ;
-			$.extruders = scanAndLoadByAnnotationType(path, aExtruder.class.getName(), $.extruders, $.actx.$args.getEventLogger("init")) ;
+			$.extruders = scanAndLoadByAnnotationType(path, aExtruder.class.getName(), $.extruders, ASMB_getEventLogger($.actx.$args(), "init")) ;
 
-			$.actx.$args.getEventLogger("init").log("extruders: {}", $.extruders) ;
+			logEvent($.actx.$args(), Init, "init", "(init) {}: extruders: {}", XA.class, $.extruders) ;
 		}
 
 		{
 			final String path = $.props.getProperty("XA.directive.scan.classpath") ;
 			$.actx.directives = scanAndInstantiateByAnnotationType(path, aDirective.class.getName(), iDirective.class, $.actx.directives, $.actx,
-					$.actx.$args.getEventLogger("init")) ;
+					ASMB_getEventLogger($.actx.$args(), "init")) ;
 
-			$.actx.$args.getEventLogger("init").log("directives: {}", $.actx.directives) ;
+			logEvent($.actx.$args(), Init, "init", "(init) {}: directives: {}", XA.class, $.actx.directives) ;
 		}
 
 
-		Map<String, aProcessor> srcFNExts = buildSourceFilenameExtensions($.processors) ;
-		$.actx.$args.getEventLogger("init").log("srcFNExts: {}", srcFNExts) ;
+		final Map<String, aProcessor> srcFNExts = buildSourceFilenameExtensions($.processors) ;
+		logEvent($.actx.$args(), Init, "init", "(init) {}: srcFNExts: {}", XA.class, srcFNExts) ;
 
 
 		// Decode command line arguments ...
 
 		$.actx.decodedArgs = decodeCommandLine($.actx.cmd, srcFNExts, $.props, $.actx.decodedArgs) ;
-		$.actx.$args.getEventLogger("init").log("decodedArgs: {}", $.actx.decodedArgs) ;
+		logEvent($.actx.$args(), Init, "init", "(init) {}: decodedArgs: {}", XA.class, $.actx.decodedArgs) ;
 
 
 		CLArgs.printToolUsage(AppUsage, AppDesc, $.actx.decodedArgs(), Console) ;
@@ -471,13 +402,13 @@ public class XA {
 	}
 
 
-	static Map<String, aProcessor> buildSourceFilenameExtensions(Map<String, Class<Class<? extends iProcessor>>> processors) {
+	static Map<String, aProcessor> buildSourceFilenameExtensions(final Map<String, Class<Class<? extends iProcessor>>> processors) {
 
-		Map<String, aProcessor> srcFNExts = new HashMap<>() ;
+		final Map<String, aProcessor> srcFNExts = new HashMap<>() ;
 
-		for ( String id : processors.keySet() ) {
-			aProcessor processor = (aProcessor) processors.get(id).getAnnotation(aProcessor.class) ;
-			for ( String fnExt : processor.extensions() )
+		for ( final String id : processors.keySet() ) {
+			final aProcessor processor = processors.get(id).getAnnotation(aProcessor.class) ;
+			for ( final String fnExt : processor.extensions() )
 				srcFNExts.put(fnExt.toLowerCase(), processor) ;
 		}
 
@@ -486,6 +417,7 @@ public class XA {
 	}
 
 
+	@SuppressWarnings("unchecked")
 	static <T> Map<String, T> scanAndInstantiateByAnnotationType(final String path, final String annotation, final Class<T> clazz, Map<String, T> annotations,
 			final AssemblyContext actx, final LoggingEventBuilder logger) {
 
@@ -495,7 +427,6 @@ public class XA {
 			annotations = new HashMap<>() ;
 
 		try {
-			@SuppressWarnings("unchecked")
 			final Set<Class<?>> _annotations = new Reflections(path).getTypesAnnotatedWith((Class<? extends Annotation>) Class.forName(annotation)) ;
 			logger.log("found {} annotations in classpath: |{}|", _annotations.size(), _annotations) ;
 
@@ -506,7 +437,6 @@ public class XA {
 
 						final String _classname = _annotation.getName() ;
 						final Class<?> _clazz = Reflection.type(_classname).loadAs(clazz) ;
-						@SuppressWarnings("unchecked")
 						final T _object = (T) Reflection.constructor().withParameterTypes(AssemblyContext.class).in(_clazz).newInstance(actx) ;
 
 						annotations.put(_annotation.getSimpleName(), _object) ;
@@ -546,5 +476,31 @@ public class XA {
 
 
 		return annotations ;
+	}
+
+
+	public static LoggingEventBuilder ASMB_getEventLogger(final XA$Args $args, final String event) {
+		return $args.getEventLogger(event) ;
+	}
+
+
+	public static void logEvent(final XA$Args $args, final AssemblyPhases phase, final String event, final String format, final Object... args) {
+
+		if ( $args.eventLoggers().containsKey(phase.name()) )
+			$args.getEventLogger(event).log(format, args) ;
+	}
+
+
+	public static void logEvent(final XA$Args $args, final AssemblyPhases phase, final String event, final String format, final Class<?> clazz,
+			final Object... args) {
+
+		if ( $args.eventLoggers().containsKey(phase.name()) ) {
+
+			final Object[] _args = new Object[args.length + 1] ;
+			System.arraycopy(args, 0, _args, 1, args.length) ;
+			_args[0] = clazz.getSimpleName() ;
+
+			$args.getEventLogger(event).log(format, _args) ;
+		}
 	}
 }

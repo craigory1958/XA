@@ -10,8 +10,8 @@ import java.util.Map ;
 
 import org.antlr.v4.runtime.ParserRuleContext ;
 
+import xcom.retro.xa.AssemblyContext ;
 import xcom.retro.xa.Operand ;
-import xcom.retro.xa.XA.AssemblyContext ;
 import xcom.retro.xa.api.annotations.aDirective ;
 import xcom.retro.xa.api.interfaces.iDirective ;
 import xcom.utils4j.data.structured.map.Maps ;
@@ -53,8 +53,8 @@ public class WORD implements iDirective {
 		final byte[] bytes = actx.statement().bytes() ;
 
 		for ( int b = 0; b < bytes.length; b = b + 2 ) {
-			bytes[b] = EXPR_lsb(_operand1.assignment().eval(actx.symbols()).value()) ;
-			bytes[b + 1] = EXPR_msb(_operand1.assignment().eval(actx.symbols()).value()) ;
+			bytes[b] = EXPR_lsb(_operand1.assignment().eval(actx.identifiers()).value()) ;
+			bytes[b + 1] = EXPR_msb(_operand1.assignment().eval(actx.identifiers()).value()) ;
 		}
 
 		actx.statement().bytes(bytes) ;

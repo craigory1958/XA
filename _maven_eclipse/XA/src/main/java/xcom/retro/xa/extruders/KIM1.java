@@ -8,9 +8,9 @@ import java.util.Arrays ;
 import java.util.function.BiConsumer ;
 import java.util.function.Consumer ;
 
+import xcom.retro.xa.AssemblyContext ;
 import xcom.retro.xa.ByteBlock ;
 import xcom.retro.xa.Segment ;
-import xcom.retro.xa.XA.AssemblyContext ;
 import xcom.retro.xa.api.annotations.aExtruder ;
 import xcom.retro.xa.api.interfaces.iExtruder ;
 

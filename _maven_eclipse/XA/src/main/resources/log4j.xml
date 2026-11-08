@@ -53,7 +53,7 @@
 		<appender-ref ref="stdout-appender" />
 	</logger>
 
-	<logger name="xcom.retro.xa.Statement" additivity="false">
+	<logger name="xcom.retro.xa" additivity="false">
 		<level value="warn" />
 		<appender-ref ref="stdout-appender" />
 	</logger>
@@ -71,7 +71,7 @@
 	<!-- Root Logger -->
 
  	<root>
-		<priority value="info" />
+		<priority value="warn" />
 		<appender-ref ref="stdout-appender" />
 	</root>
 

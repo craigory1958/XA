@@ -1,11 +1,8 @@
  
 
-grammar Expressions ;
-
-options { 
-	caseInsensitive = true;	
-}
-
+//
+// Expresions (v1)
+//
 
 expr:  term ( ( binary | comparison ) term)* ;
 
@@ -15,7 +12,7 @@ org: '*' ;
 identifier:  Identifier ;
 
 
-binary: integerAdd | integerSubtract | integerMultiply | integerDivide | bitwiseShiftLeft | bitwiseShiftRight | bitwiseAnd | bitwiseOr | logicalAnd |  logicalOr ;
+binary: integerAdd | integerSubtract | integerMultiply | integerDivide | bitwiseShiftLeft | bitwiseShiftRight | bitwiseAnd | bitwiseOr | logicalAnd | logicalOr ;
 comparison: equal | notEqual | lessThan | greaterThan | '<=' | '>=' ;
 unary:  plus | minus | highByte | lowByte | logicalNot ;
 

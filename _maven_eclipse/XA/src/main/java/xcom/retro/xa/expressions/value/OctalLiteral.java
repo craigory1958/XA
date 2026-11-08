@@ -5,10 +5,18 @@ package xcom.retro.xa.expressions.value ;
 
 import static xcom.retro.xa.expressions.ExpressionUtils.EXPR_asBytes ;
 
+import xcom.retro.xa.AssemblyContext ;
+import xcom.utils4j.logging.aspects.api.annotations.Log ;
 
+
+@Log
 public class OctalLiteral extends _ValueNode {
 
-	public OctalLiteral(final String value) {
-		super(EXPR_asBytes(Integer.valueOf(value.substring(2), 8))) ;
+	//
+	// Constructor(s) ...
+	//
+
+	public OctalLiteral(final AssemblyContext actx, final String value) {
+		super(actx, EXPR_asBytes(Integer.valueOf(value.substring(2), 8))) ;
 	}
 }

@@ -3,6 +3,7 @@
 package xcom.retro.xa.processors ;
 
 
+import static xcom.retro.xa.XA.logEvent ;
 import static xcom.retro.xa.assembly.AssemblyUtils.ASMB_parsedContextName ;
 import static xcom.retro.xa.assembly.AssemblyUtils.ASMB_parsedText ;
 import static xcom.retro.xa.expressions.ExpressionUtils.EXPR_lsb ;
@@ -12,11 +13,9 @@ import java.util.Arrays ;
 import java.util.Map ;
 
 import org.antlr.v4.runtime.ParserRuleContext ;
-import org.slf4j.Logger ;
-import org.slf4j.LoggerFactory ;
 
+import xcom.retro.xa.AssemblyContext ;
 import xcom.retro.xa.Operand ;
-import xcom.retro.xa.XA.AssemblyContext ;
 import xcom.retro.xa.antlr.processors.MOS6502.MOS6502_Lexer ;
 import xcom.retro.xa.antlr.processors.MOS6502.MOS6502_Parser ;
 import xcom.retro.xa.api.annotations.aProcessor ;
@@ -24,10 +23,12 @@ import xcom.retro.xa.api.interfaces.iProcessor ;
 import xcom.retro.xa.assembly.AssemblyListener ;
 import xcom.retro.xa.expressions.value._ValueNode ;
 import xcom.utils4j.Enums ;
+import xcom.utils4j.Signatures ;
 import xcom.utils4j.data.structured.map.Maps ;
 import xcom.utils4j.logging.aspects.api.annotations.Log ;
 
 
+@Log
 @aProcessor(lexar = MOS6502_Lexer.class, parser = MOS6502_Parser.class, listener = MOS6502.class, extensions = { "a65", })
 public class MOS6502 extends AssemblyListener implements iProcessor {
 
@@ -198,14 +199,7 @@ public class MOS6502 extends AssemblyListener implements iProcessor {
 
 
 	//
-	//
-	//
-
-	private static final Logger Logger = LoggerFactory.getLogger(MOS6502.class) ;
-
-
-	//
-	//
+	// Constructor(s) ...
 	//
 
 	public MOS6502(final AssemblyContext actx) {
@@ -217,7 +211,6 @@ public class MOS6502 extends AssemblyListener implements iProcessor {
 	//
 	//
 
-	@Log
 	public void exitInstruction(final ParserRuleContext pctx) {
 
 		if ( actx().statement().assemblyEnable() ) {
@@ -231,7 +224,7 @@ public class MOS6502 extends AssemblyListener implements iProcessor {
 			if ( opcode.zpOption != null )
 				try {
 					final Operand operand1 = Maps.firstEntryValue(_operands) ;
-					final _ValueNode value = operand1.assignment().eval(actx().symbols()) ;
+					final _ValueNode value = operand1.assignment().eval(actx().identifiers()) ;
 
 					if ( (value != null) && ((int) value.getValue() <= 255) )
 						opcode = opcode.zpOption ;
@@ -245,7 +238,7 @@ public class MOS6502 extends AssemblyListener implements iProcessor {
 			actx().statement().bytes(Arrays.copyOf(opcode.bytes, opcode.bytes.length)) ;
 			actx().segment().allocateBytes(actx().statement().bytes()) ;
 
-			Logger.debug("Assembled callback method {}", callback) ;
+			logEvent(actx().$args(), actx().phase(), "asmb", "(asmb) {}: exiting {} ", this.getClass(), Signatures.coerceMethodName()) ;
 		}
 	}
 
@@ -254,45 +247,41 @@ public class MOS6502 extends AssemblyListener implements iProcessor {
 	//
 	//
 
-	@Log
 	void set1ByteInstruction() {
 
 		final byte[] bytes = actx().statement().bytes() ;
 		actx().statement().bytes(bytes) ;
 	}
 
-	@Log
 	void set2ByteInstruction() {
 
 		final Map<String, Operand> _operands = actx().statement().operands() ;
 		final Operand _operand1 = Maps.firstEntryValue(_operands) ;
 
 		final byte[] bytes = actx().statement().bytes() ;
-		bytes[1] = EXPR_lsb(_operand1.assignment().eval(actx().symbols()).value()) ;
+		bytes[1] = EXPR_lsb(_operand1.assignment().eval(actx().identifiers()).value()) ;
 		actx().statement().bytes(bytes) ;
 	}
 
-	@Log
 	void set2ByteRelativeInstruction() {
 
 		final Map<String, Operand> _operands = actx().statement().operands() ;
 		final Operand _operand1 = Maps.firstEntryValue(_operands) ;
 
 		final byte[] bytes = actx().statement().bytes() ;
-		final int x = (Integer) _operand1.assignment().eval(actx().symbols()).getValue() ;
+		final int x = (Integer) _operand1.assignment().eval(actx().identifiers()).getValue() ;
 		final int y = actx().statement().loc() ;
 		bytes[1] = (byte) ((x - y - 2) & 0xFF) ;
 		actx().statement().bytes(bytes) ;
 	}
 
-	@Log
 	void set3ByteInstruction() {
 
 		final Map<String, Operand> _operands = actx().statement().operands() ;
 		final Operand _operand1 = Maps.firstEntryValue(_operands) ;
 
 		final byte[] bytes = actx().statement().bytes() ;
-		final byte[] value = _operand1.assignment().eval(actx().symbols()).value() ;
+		final byte[] value = _operand1.assignment().eval(actx().identifiers()).value() ;
 		bytes[1] = EXPR_lsb(value) ;
 		bytes[2] = EXPR_msb(value) ;
 		actx().statement().bytes(bytes) ;

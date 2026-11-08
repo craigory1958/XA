@@ -10,7 +10,7 @@ import org.junit.runners.Suite ;
 //@formatter:off
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-	_Test_XA_ForwardReference.class
+	_Test_AssemblyTest_ForwardReference.class
 })
 //@formatter:on
 

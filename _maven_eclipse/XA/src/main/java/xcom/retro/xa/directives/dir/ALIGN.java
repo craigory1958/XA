@@ -7,8 +7,8 @@ import java.util.Map ;
 
 import org.antlr.v4.runtime.ParserRuleContext ;
 
+import xcom.retro.xa.AssemblyContext ;
 import xcom.retro.xa.Operand ;
-import xcom.retro.xa.XA.AssemblyContext ;
 import xcom.retro.xa.api.annotations.aDirective ;
 import xcom.retro.xa.api.interfaces.iDirective ;
 import xcom.retro.xa.expressions.value._ValueNode ;
@@ -32,7 +32,7 @@ public class ALIGN implements iDirective {
 		final Map<String, Operand> _operands = actx.statement().operands() ;
 
 		final Operand operand1 = Maps.firstEntryValue(_operands) ;
-		final _ValueNode value = operand1.assignment().eval(actx.symbols()) ;
+		final _ValueNode value = operand1.assignment().eval(actx.identifiers()) ;
 		actx.segment().setOrg((actx.statement().loc() + ((int) value.getValue())) - (actx.statement().loc() % ((int) value.getValue()))) ;
 	}
 }

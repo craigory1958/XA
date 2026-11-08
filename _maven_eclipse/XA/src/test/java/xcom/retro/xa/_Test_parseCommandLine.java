@@ -4,12 +4,14 @@ package xcom.retro.xa ;
 
 
 import static org.junit.Assert.assertEquals ;
+import static xcom.retro.xa.XA$Args.CommandLineOptions ;
 
 import java.io.IOException ;
 import java.util.Arrays ;
 import java.util.Collection ;
 
 import org.apache.commons.cli.CommandLine ;
+import org.apache.commons.cli.DefaultParser ;
 import org.apache.commons.cli.Option ;
 import org.apache.commons.cli.ParseException ;
 import org.junit.Test ;
@@ -59,10 +61,10 @@ public class _Test_parseCommandLine {
 	@Test
 	public void parseCommandLine() throws IOException, ParseException {
 
-		final CommandLine actual = XA.parseCommandLine(args, XA.CommandLineOptions) ;
+		final CommandLine actual = new DefaultParser().parse(CommandLineOptions, args) ;
 
 		int e = 0 ;
-		for ( Option option : actual.getOptions() )
+		for ( final Option option : actual.getOptions() )
 			assertEquals("", expected[e++], option.getOpt()) ;
 	}
 }

@@ -1,0 +1,7 @@
+
+	.include "AssemblyTest_LIST_INCLUDE_abc.a65"
+
+	.include "AssemblyTest_LIST_INCLUDE_abc.a65", list=.list
+
+	.include "AssemblyTest_LIST_INCLUDE_abc.a65", list=.nolist
+	

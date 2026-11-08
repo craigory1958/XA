@@ -15,26 +15,45 @@ public class Statement {
 
 	//@formatter:off
 
+	/**
+	 * Designates if statement is assembled.
+	 */
 	boolean assemblyEnable ;
 	public boolean assemblyEnable() { return assemblyEnable ; }
 
+	/**
+	 * Any operands included in the statement.
+	 */
 	Map<String, Operand> operands ;
 	public Map<String, Operand> operands() { return operands ; }
 
+	/**
+	 * Callback method used to assemble statement opcode.
+	 */
 	String assemblyCallbackMethod ;
 	public Statement assemblyCallbackMethod(final String assemblyCallbackMethod) {
 		this.assemblyCallbackMethod = assemblyCallbackMethod ;
 		return this ;
 	}
 
+	/**
+	 * Callback object passed to Callback Method.
+	 */
 	Object assemblyCallbackObject ;
 	public Statement assemblyCallbackObject(final Object assemblyCallbackObject) {
 		this.assemblyCallbackObject = assemblyCallbackObject ;
 		return this ;
 	}
 
+	/**
+	 * 
+	 */
 	ByteBlock block ;
+	public ByteBlock block() { return block ; }
 
+	/**
+	 * Assembled statement bytes.
+	 */
 	byte[] bytes ;
 	public byte[] bytes() { return bytes ; }
 	public Statement bytes(final byte[] bytes) {
@@ -42,16 +61,31 @@ public class Statement {
 		return this ;
 	}
 
-	Moniker label ;
-	public Moniker label() { return label ; }
-	public Statement label(final Moniker label) {
+	/**
+	 * Source file number of original statement line.
+	 */
+	Integer fn ;
+	public Integer fn() { return fn ; }
+
+	/**
+	 * 
+	 */
+	Identifier label ;
+	public Identifier label() { return label ; }
+	public Statement label(final Identifier label) {
 		this.label = label ;
 		return this ;
 	}
 
+	/**
+	 * Original statement line text.
+	 */
 	String line ;
 	public String line() { return line ; }
 
+	/**
+	 * Designates if statement is included in listings.
+	 */
 	boolean list ;
 	public boolean list() { return list ; }
 	public Statement list(final boolean list) {
@@ -59,6 +93,9 @@ public class Statement {
 		return this ;
 	}
 
+	/**
+	 * Source line number of original statement line.
+	 */
 	int ln ;
 	public int ln() { return ln ; }
 	public Statement ln(final int ln) {
@@ -66,19 +103,21 @@ public class Statement {
 		return this ;
 	}
 
-	int sourceLN ;
-	public int sourceLN() { return sourceLN ; }
-	public Statement sourceLN(final int sourceLN) {
-		this.sourceLN = sourceLN ;
-		return this ;
-	}
-
+	/**
+	 * Memory location of assembled statement.
+	 */
 	int loc ;
 	public int loc() { return loc ; }
 
+	/**
+	 * 
+	 */
 	Map<String, Parameter> parameters ;
 	public Map<String, Parameter> parameters() { return parameters ; }
 
+	/**
+	 * 
+	 */
 	ParserRuleContext pctx ;
 	public ParserRuleContext pctx() { return pctx ; }
 	public Statement pctx(final ParserRuleContext pctx) {
@@ -86,23 +125,40 @@ public class Statement {
 		return this ;
 	}
 
-	Integer sourceID ;
-	public Integer sourceID() { return sourceID ; }
+	/**
+	 * Ordinal number of the assembled statement.
+	 */
+	int sn ;
+	public int sn() { return sn ; }
+	public Statement sn(final int sn) {
+		this.sn = sn ;
+		return this ;
+	}
 
 	//@formatter:on
 
 
 	@Log
-	public Statement(final int sourceID, final int sourceLN, final String line, final int lc, final boolean list, final boolean assembleEnable) {
+	public Statement(final int fn, final int ln, final String line, final int loc, final boolean list, final boolean assembleEnable) {
 
-		this.assemblyEnable = assembleEnable ;
-		loc = lc ;
+		assemblyEnable = assembleEnable ;
+		this.loc = loc ;
 		this.line = line ;
 		this.list = list ;
-		this.sourceLN = sourceLN ;
-		this.sourceID = sourceID ;
+		this.ln = ln ;
+		this.fn = fn ;
 
 		operands = new LinkedHashMap<>() ;
 		parameters = new LinkedHashMap<>() ;
+	}
+
+
+	//
+	//
+	//
+
+	@Override
+	public String toString() {
+		return String.format("ln:%d, ln:%d, loc:%d", sn, ln, loc) ;
 	}
 }

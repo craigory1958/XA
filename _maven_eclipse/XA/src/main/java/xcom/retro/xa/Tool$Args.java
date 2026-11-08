@@ -17,15 +17,15 @@ import xcom.utils4j.CLArgs ;
 public class Tool$Args extends CLArgs {
 
 	public static final String Tool$ArgLong_Library = "lib" ;
-	public static final Option Tool$ArgOption_Library =
-			Option.builder(null).argName("libraries").longOpt(Tool$ArgLong_Library).hasArg().argName("fnSPec [, fnSpec ...]").desc("libraries").build() ;
+	public static final Option Tool$ArgOption_Library = Option.builder(null).longOpt(Tool$ArgLong_Library).hasArg(true) //
+			.argName("fnSpec [, fnSpec ...]").desc("libraries").build() ;
 
 
-	public Tool$Args(CommandLine cmd, Properties props, String[] args, Logger logger) {
+	public Tool$Args(final CommandLine cmd, final Properties props, final String[] args, final Logger logger) {
 		super(cmd, props, args, logger) ;
 	}
 
 
 	@Override
-	public void validateCommandLine(CommandLine cmd, Options options) throws ParseException {}
+	public void validateCommandLine(final CommandLine cmd, final Options options) throws ParseException {}
 }

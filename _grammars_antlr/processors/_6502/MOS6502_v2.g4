@@ -1,20 +1,7 @@
- 
-
-grammar MOS6502_;
-
-options { 
-	caseInsensitive = true;	
-}
-
-
-assembly:  ( statement eol )* EOF ;
-statement:  ( label | instruction | ( label instruction ) | directive | ( label directive ) )?  ;
-
-label:  Identifier ;
 
 
 //
-// Instructions
+// MOS6502 (v2)
 //
 
 instruction:  ( branchOpcode branchAddressingMode ) | ( opcode addressingMode ) ;
@@ -112,7 +99,7 @@ org: '*' ;
 identifier:  Identifier ;
 
 
-binary: integerAdd | integerSubtract | integerMultiply | integerDivide | bitwiseShiftLeft | bitwiseShiftRight | bitwiseAnd | bitwiseOr | logicalAnd |  logicalOr ;
+binary: integerAdd | integerSubtract | integerMultiply | integerDivide | bitwiseShiftLeft | bitwiseShiftRight | bitwiseAnd | bitwiseOr | logicalAnd | logicalOr ;
 comparison: equal | notEqual | lessThan | greaterThan | '<=' | '>=' ;
 unary:  plus | minus | highByte | lowByte | logicalNot ;
 

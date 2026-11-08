@@ -1,0 +1,3 @@
+
+    .byte AHEAD
+AHEAD

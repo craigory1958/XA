@@ -16,7 +16,14 @@ public class Operand {
 	_ExprNode assignment ;
 	public _ExprNode assignment() { return assignment ; }
 	public Operand assignment(final _ExprNode assignment) {
-		this.assignment=assignment ;
+		this.assignment = assignment ;
+		return this ;
+	}
+
+	String source ;
+	public String source() { return source ; }
+	public Operand source(final String source) {
+		this.source = source ;
 		return this ;
 	}
 
@@ -26,6 +33,11 @@ public class Operand {
 	public Operand(final String moniker, final _ExprNode assignment) {
 		this.moniker = moniker ;
 		this.assignment = assignment ;
+	}
+
+	public Operand(final String moniker, final String source) {
+		this.moniker = moniker ;
+		this.source = source ;
 	}
 
 	public Operand(final String moniker) {

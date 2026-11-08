@@ -5,8 +5,8 @@ package xcom.retro.xa.directives.dir ;
 
 import org.antlr.v4.runtime.ParserRuleContext ;
 
+import xcom.retro.xa.AssemblyContext ;
 import xcom.retro.xa.Operand ;
-import xcom.retro.xa.XA.AssemblyContext ;
 import xcom.retro.xa.api.annotations.aDirective ;
 import xcom.retro.xa.api.interfaces.iDirective ;
 import xcom.retro.xa.expressions.value._ValueNode ;
@@ -30,7 +30,7 @@ public class ORG implements iDirective {
 	public void parse(final ParserRuleContext pctx) {
 
 		final Operand operand1 = Maps.firstEntryValue(actx.statement().operands()) ;
-		final _ValueNode value = operand1.assignment().eval(actx.symbols()) ;
+		final _ValueNode value = operand1.assignment().eval(actx.identifiers()) ;
 		actx.segment().setOrg((int) value.getValue()) ;
 	}
 }

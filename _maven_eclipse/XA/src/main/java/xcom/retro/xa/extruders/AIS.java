@@ -8,8 +8,8 @@ import java.util.ArrayList ;
 import java.util.Comparator ;
 import java.util.List ;
 
+import xcom.retro.xa.AssemblyContext ;
 import xcom.retro.xa.Statement ;
-import xcom.retro.xa.XA.AssemblyContext ;
 import xcom.retro.xa.api.annotations.aExtruder ;
 import xcom.retro.xa.api.interfaces.iExtruder ;
 
@@ -20,11 +20,11 @@ public class AIS implements iExtruder {
 	@Override
 	public void extrude(final PrintWriter out, final AssemblyContext actx) {
 
-		List<Statement> _statements = new ArrayList<>(actx.statements()) ;
+		final List<Statement> _statements = new ArrayList<>(actx.statements()) ;
 		_statements.sort(Comparator.comparing(Statement::loc)) ;
 
 		for ( final Statement _statement : _statements )
-			if ( _statement.bytes() != null && _statement.bytes().length > 0 ) {
+			if ( (_statement.bytes() != null) && (_statement.bytes().length > 0) ) {
 
 				for ( int b = 0; b < 4; b++ )
 					if ( (_statement.bytes() != null) && (b < _statement.bytes().length) )

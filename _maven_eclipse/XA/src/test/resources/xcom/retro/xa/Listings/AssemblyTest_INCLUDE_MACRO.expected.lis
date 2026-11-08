@@ -1,0 +1,126 @@
+         1:                    
+         2:                    
+         3:                                   .include     "AssemblyTest_INCLUDE_MACRO_LIB.def.a65", as=.STDL, list=.list
+  A.01   4:                    
+  A.02   5: (0001)                 V1             .equ     1
+  A.03   6:                    
+  A.04   7:                    
+  A.05   8:                       .DECLARE    .macro   ver
+  A.06   0:                    
+  A.07   0:                                       .ifndef  declared
+  A.08   0:                        declared           .equ     ${ver}
+  A.09   0:                    
+  A.10   0:                                           .if ${ver} == V1
+  A.11   0:                                               .include "AssemblyTest_INCLUDE_MACRO_LIB.a65", as=.STDL, list=.list
+  A.12   0:                                           .endif
+  A.13   0:                                       .endif
+  A.14   0:                                   .endmacro
+  A.15   9:                    
+        10:                    
+        11:                                   .STDL:.DECLARE   .STDL:V1, list=.list
+  A.06  12:                    
+  A.07  13:                                       .ifndef  declared
+  A.08  14: (0001)                 declared           .equ     0x01
+  A.09  15:                    
+  A.10  16:                                           .if 0x01 == V1
+  A.11  17:                                               .include "AssemblyTest_INCLUDE_MACRO_LIB.a65", as=.STDL, list=.list
+  C.01  18:                    
+  C.02  19:                       .JSRWPB         .macro   sub, ra        ; Jump to SubRoutine With Parameter Block
+  C.03   0:                    
+  C.04   0:                                            JSR     ${sub}
+  C.05   0:                                           .word    ${ra}-1    ; Point 1 byte before actual return address
+  C.06   0:                    
+  C.07   0:                                       .endmacro
+  C.08  20:                    
+  C.09  21:                    
+  C.10  22:                       .RTSWPB         .macro                   ; ReTurn from Subroutine With Parameter Block
+  C.11   0:                    
+  C.12   0:                                    ; Pull return address from stack, use as pointer to fetch actual return address
+  C.13   0:                    
+  C.14   0:                    				; Pull return address into X:Y
+  C.15   0:                    
+  C.16   0:                     	                PLA                 ; Pull RAP low-byte
+  C.17   0:                    	                TAY
+  C.18   0:                    	                PLA                 ; Pull RAP high-byte
+  C.19   0:                    	                TAX
+  C.20   0:                    
+  C.21   0:                    				; 6502 return addresse son stack are 1 byte before actual return address
+  C.22   0:                    
+  C.23   0:                    				; Increment X:Y
+  C.24   0:                    
+  C.25   0:                    	                INY                 
+  C.26   0:                    	                STY     rap
+  C.27   0:                    	                BNE     @ne
+  C.28   0:                    	                INX
+  C.29   0:                                    @ne
+  C.30   0:                    	                STX     rap+1
+  C.31   0:                    
+  C.32   0:                    				; Push return address on to stack
+  C.33   0:                    
+  C.34   0:                    	                LDY     #$01        
+  C.35   0:                    	                LDA     (rap), Y    ; High-byte first
+  C.36   0:                    	                PHA
+  C.37   0:                    	                DEY
+  C.38   0:                    	                LDA     (rap),Y     ; Low-byte second
+  C.39   0:                    	                PHA
+  C.40   0:                    
+  C.41   0:                    	                RTS
+  C.42   0:                           
+  C.43   0:                                           .ifndef  rap
+  C.44   0:                                               .segment "MPU65XX_ZP"
+  C.45   0:                                    rap        .word    $FFFF
+  C.46   0:                                           .endif
+  C.47   0:                    
+  C.48   0:                                       .endmacro
+  C.49  23:                    
+  A.12  24:                                           .endif
+  A.13  25:                                       .endif
+        26:                    
+        27:                                   .STDL:.JSRWPB	0, 0, list=.list
+  C.03  28:                    
+  C.04  29:  0000 20 00 00                             JSR     0x00
+  C.05  30:  0003 FF FF                               .word    0x00-1    ; Point 1 byte before actual return address
+  C.06  31:                    
+        32:  0005 34 12                arg1   .word    $1234
+        33:                    
+        34:                    
+        35:  0007 EA           mySub           NOP
+        36:                                   .STDL:.RTSWPB, list=.list
+  C.11  37:                    
+  C.12  38:                                    ; Pull return address from stack, use as pointer to fetch actual return address
+  C.13  39:                    
+  C.14  40:                    				; Pull return address into X:Y
+  C.15  41:                    
+  C.16  42:  0008 68            	                PLA                 ; Pull RAP low-byte
+  C.17  43:  0009 A8           	                TAY
+  C.18  44:  000A 68           	                PLA                 ; Pull RAP high-byte
+  C.19  45:  000B AA           	                TAX
+  C.20  46:                    
+  C.21  47:                    				; 6502 return addresse son stack are 1 byte before actual return address
+  C.22  48:                    
+  C.23  49:                    				; Increment X:Y
+  C.24  50:                    
+  C.25  51:  000C C8           	                INY
+  C.26  52:  000D 8C 00 00     	                STY     rap
+  C.27  53:  0010 D0 01        	                BNE     @ne
+  C.28  54:  0012 E8           	                INX
+  C.29  55:  0013                              @ne
+  C.30  56:  0013 8E 01 00     	                STX     rap+1
+  C.31  57:                    
+  C.32  58:                    				; Push return address on to stack
+  C.33  59:                    
+  C.34  60:  0016 A0 01        	                LDY     #$01
+  C.35  61:  0018 B9 00 00     	                LDA     (rap), Y    ; High-byte first
+  C.36  62:  001B 48           	                PHA
+  C.37  63:  001C 88           	                DEY
+  C.38  64:  001D B9 00 00     	                LDA     (rap),Y     ; Low-byte second
+  C.39  65:  0020 48           	                PHA
+  C.40  66:                    
+  C.41  67:  0021 60           	                RTS
+  C.42  68:                    
+  C.43  69:                                           .ifndef  rap
+  C.44  70:                                               .segment "MPU65XX_ZP"
+  C.45  71:  0000 FF FF                        rap        .word    $FFFF
+  C.46  72:                                           .endif
+  C.47  73:                    
+        74:                    

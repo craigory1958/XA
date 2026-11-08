@@ -1,0 +1,48 @@
+
+   .JSRWPB         .macro   sub, ra        ; Jump to SubRoutine With Parameter Block
+
+                        JSR     ${sub}
+                       .word    ${ra}-1    ; Point 1 byte before actual return address
+
+                   .endmacro
+
+
+   .RTSWPB         .macro                   ; ReTurn from Subroutine With Parameter Block
+
+                ; Pull return address from stack, use as pointer to fetch actual return address
+
+				; Pull return address into X:Y
+
+ 	                PLA                 ; Pull RAP low-byte
+	                TAY
+	                PLA                 ; Pull RAP high-byte
+	                TAX
+
+				; 6502 return addresse son stack are 1 byte before actual return address
+
+				; Increment X:Y
+
+	                INY                 
+	                STY     rap
+	                BNE     @ne
+	                INX
+                @ne
+	                STX     rap+1
+
+				; Push return address on to stack
+
+	                LDY     #$01        
+	                LDA     (rap), Y    ; High-byte first
+	                PHA
+	                DEY
+	                LDA     (rap),Y     ; Low-byte second
+	                PHA
+
+	                RTS
+       
+                       .ifndef  rap
+                           .segment "MPU65XX_ZP"
+                rap        .word    $FFFF
+                       .endif
+
+                   .endmacro

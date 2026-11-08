@@ -29,7 +29,7 @@
         <dependency>
         	<groupId>xcom</groupId>
         	<artifactId>utils4j</artifactId>
-        	<version>${xcom.utils4j.version}</version>
+        	<version>1.0.7</version>
         </dependency>
         
   		<!-- https://mvnrepository.com/artifact/com.google.guava/guava -->

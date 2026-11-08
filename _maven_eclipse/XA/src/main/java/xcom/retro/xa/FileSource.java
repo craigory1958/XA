@@ -8,75 +8,115 @@ import java.io.FileInputStream ;
 import java.io.FileNotFoundException ;
 import java.io.IOException ;
 import java.io.InputStreamReader ;
+import java.util.HashMap ;
 import java.util.LinkedList ;
+import java.util.Map ;
 import java.util.Queue ;
 import java.util.UUID ;
 
+import org.apache.commons.io.FilenameUtils ;
 import org.apache.commons.lang3.StringUtils ;
 
 import xcom.retro.xa.api.interfaces.iSource ;
+import xcom.utils4j.format.Templator ;
+import xcom.utils4j.logging.aspects.api.annotations.Log ;
 
 
+@Log
 public class FileSource implements iSource {
+
+	public static final String[] $$Delimiters = { "$${", "}", "%%{", "}", "!!{", "}" } ;
+
+	//
+	// Attributes ...
+	//
 
 	//@formatter:off
 
-	String qualifier ;
-	@Override
-	public String qualifier() { return qualifier ; }
+	BufferedReader br ;
+
+	String[] delimiters = new String[0] ;
+
+	int fn ;
 
 	String fSpec ;
-	@Override
-	public String fSpec() { return fSpec ; }
 
 	boolean list ;
-	@Override
-	public boolean list() { return list ; }
 	public FileSource list(final boolean list) {
 		this.list = list ;
 		return this ;
 	}
 
+	int ln ;
+
+	String qualifier = "" ;
+
+	Queue<String> queuedLines ;
+
 	String scopeID ;
-	@Override
-	public String scopeID() { return scopeID ; }
 
-	int sourceID ;
-	@Override
-	public int sourceID() { return sourceID ; }
+	Segment segment ;
 
-	int sourceLN ;
-	@Override
-	public int sourceLN() { return sourceLN ; }
+	Map<String, Object> substituions = new HashMap<>() ;
+
+	boolean wasNull ;
+
+	boolean wasEmpty ;
 
 	//@formatter:on
 
 
-	BufferedReader br ;
-	Queue<String> queuedLines ;
-	boolean wasNull = false ;
-	boolean wasEmpty = false ;
-
-
 	//
-	//
+	// Constructor(s) ...
 	//
 
-	public FileSource(final int sourceID, final String fSpec, final boolean list) throws FileNotFoundException {
+	public FileSource(final int fn, final String fSpec, final boolean list, final Segment segment) throws FileNotFoundException {
 
-		this.sourceID = sourceID ;
+		this.fn = fn ;
 		this.fSpec = fSpec ;
 		this.list = list ;
+		this.segment = segment ;
 
 		_initialize(this) ;
 	}
 
-	public FileSource(final int sourceID, final String fSpec, final boolean list, final String qualifier) throws FileNotFoundException {
 
-		this.sourceID = sourceID ;
+	public FileSource(final int fn, final String fSpec, final boolean list, final Segment segment, final Map<String, Object> substituions, final String[] delimiters)
+			throws FileNotFoundException {
+
+		this.fn = fn ;
 		this.fSpec = fSpec ;
 		this.list = list ;
+		this.segment = segment ;
+		this.substituions = substituions ;
+		this.delimiters = delimiters ;
+
+		_initialize(this) ;
+	}
+
+
+	public FileSource(final int fn, final String fSpec, final boolean list, final Segment segment, final String qualifier) throws FileNotFoundException {
+
+		this.fn = fn ;
+		this.fSpec = fSpec ;
+		this.list = list ;
+		this.segment = segment ;
 		this.qualifier = qualifier ;
+
+		_initialize(this) ;
+	}
+
+
+	public FileSource(final int fn, final String fSpec, final boolean list, final Segment segment, final String qualifier, final Map<String, Object> substituions,
+			final String[] delimiters) throws FileNotFoundException {
+
+		this.fn = fn ;
+		this.fSpec = fSpec ;
+		this.list = list ;
+		this.segment = segment ;
+		this.qualifier = qualifier ;
+		this.substituions = substituions ;
+		this.delimiters = delimiters ;
 
 		_initialize(this) ;
 	}
@@ -84,29 +124,29 @@ public class FileSource implements iSource {
 
 	void _initialize(final FileSource $) throws FileNotFoundException {
 
-		$.scopeID = UUID.randomUUID().toString().replaceAll("[-]", "") ;
 		$.br = new BufferedReader(new InputStreamReader(new FileInputStream($.fSpec))) ;
-		$.sourceLN = 0 ;
 		$.queuedLines = new LinkedList<>() ;
+		$.scopeID = UUID.randomUUID().toString().replaceAll("[-]", "") ;
+		$.ln = 0 ;
+		$.wasNull = false ;
+		$.wasEmpty = false ;
 	}
 
 
 	//
+	// Implements iSource ...
 	//
-	//
+
+	//@formatter:off
 
 	@Override
-	public String next() throws IOException {
+	public String fSpec() { return fSpec ; }
 
-//		if ( queuedLines.size() > 1 )
-//			return queuedLines.poll() ;
-//
-//		if ( queuedLines.size() > 0 )
-//			queuedLines.poll() ;
+	@Override
+	public boolean list() { return list ; }
 
-		return readLine() ;
-	}
-
+	@Override
+	public String next() throws IOException { return readLine() ; }
 
 	@Override
 	public String peek() throws IOException {
@@ -117,13 +157,33 @@ public class FileSource implements iSource {
 		return line ;
 	}
 
+	@Override
+	public String qualifier() { return qualifier ; }
+
+	@Override
+	public String scopeID() { return scopeID ; }
+
+	@Override
+	public Segment segment() { return segment ; }
+
+	@Override
+	public int fn() { return fn ; }
+
+	@Override
+	public int ln() { return ln ; }
+
+	//@formatter:on
+
+	//
+	//
+	//
 
 	public String readLine() throws IOException {
 
 		String line = null ;
 
 		if ( !wasNull ) {
-			sourceLN++ ;
+			ln++ ;
 			line = br.readLine() ;
 		}
 
@@ -141,6 +201,19 @@ public class FileSource implements iSource {
 				line = "" ;
 		}
 
+		if ( (line != null) && !substituions.isEmpty() )
+			line = Templator.delimiters(delimiters).template(line).inject(substituions) ;
+
 		return line ;
+	}
+
+
+	//
+	//
+	//
+
+	@Override
+	public String toString() {
+		return String.format("%s: (ln:%d id:%d qual:%s list:%b)", FilenameUtils.getName(fSpec), ln, fn, qualifier, list) ;
 	}
 }

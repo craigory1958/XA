@@ -23,6 +23,6 @@ public @interface aProcessor {
 	Class<? extends Parser> parser();
 
 	Class<? extends ParseTreeListener> listener();
-	
-	String[] extensions() ;
+
+	String[] extensions();
 }

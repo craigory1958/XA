@@ -3,10 +3,11 @@
 package xcom.retro.xa.directives.dir ;
 
 
+import static xcom.retro.xa.XA.logEvent ;
 import static xcom.retro.xa.assembly.AssemblyUtils.ASMB_formatQualifiedID ;
 import static xcom.retro.xa.assembly.AssemblyUtils.ASMB_parsedText ;
-import static xcom.retro.xa.directives.DirectiveUtils.DIR_isList ;
-import static xcom.retro.xa.directives.DirectiveUtils.DIR_matchInvocationOperands ;
+import static xcom.retro.xa.directives.DirectiveUtils.DIRS_coerceList ;
+import static xcom.retro.xa.directives.DirectiveUtils.DIRS_matchInvocationArguments ;
 import static xcom.utils4j.format.Templator.UnixDelimiters ;
 
 import java.util.ArrayList ;
@@ -15,63 +16,58 @@ import java.util.Map ;
 
 import org.antlr.v4.runtime.ParserRuleContext ;
 
+import xcom.retro.xa.AssemblyContext ;
 import xcom.retro.xa.BlockSource ;
+import xcom.retro.xa.Identifier ;
 import xcom.retro.xa.Operand ;
-import xcom.retro.xa.Option ;
-import xcom.retro.xa.Moniker ;
-import xcom.retro.xa.XA.AssemblyContext ;
 import xcom.retro.xa.api.annotations.aDirective ;
 import xcom.retro.xa.api.interfaces.iDirective ;
 import xcom.retro.xa.api.interfaces.iSource ;
 import xcom.retro.xa.assembly.AssemblyUtils ;
-import xcom.retro.xa.expressions.value.StringLiteral ;
 import xcom.utils4j.data.structured.list.Lists ;
 import xcom.utils4j.format.Templator ;
 import xcom.utils4j.logging.aspects.api.annotations.Log ;
 
 
+@Log
 @aDirective
 public class MACRO implements iDirective {
 
-	//@formatter:off
+	//
+	// Attributes ...
+	//
 
 	AssemblyContext actx ;
-
 	String qualifier ;
-
 	String name ;
-	public String name() { return name ; }
-
 	Map<String, Operand> options ;
-	public Map<String, Operand> options() { return options ; }
-
 	List<String> lines ;
-
 	int sourceID ;
-
-	int sourceLN ;
-
-	//@formatter:on
+	int ln ;
 
 
 	//
-	//
+	// Constructor(s) ...
 	//
 
 	public MACRO(final AssemblyContext actx) {
 		this.actx = actx ;
 	}
 
-	public MACRO(final AssemblyContext actx, final String name, final Map<String, Operand> optioms, final List<String> lines) {
+	public MACRO(final AssemblyContext actx, final String name, final Map<String, Operand> options, final List<String> lines, final int sourceID,
+			final int ln) {
 
 		this.actx = actx ;
 		this.name = name ;
-		options = optioms ;
+		this.options = options ;
 		this.lines = lines ;
+		this.sourceID = sourceID ;
+		this.ln = ln ;
 
-		sourceID = actx.sources().size() - 1 ;
-		sourceLN = actx.source().peek().sourceLN() - 1 ;
 		qualifier = actx.source().peek().qualifier() ;
+
+		logEvent(actx.$args(), actx.phase(), "MACRO", "(MACRO) {}: sources: {}", this.getClass(), actx.sources()) ;
+		logEvent(actx.$args(), actx.phase(), "MACRO", "(MACRO) {}: source: {}", this.getClass(), actx.source()) ;
 	}
 
 
@@ -79,49 +75,76 @@ public class MACRO implements iDirective {
 	//
 	//
 
-	@Log
 	public void expand(final ParserRuleContext pctx) {
 
-		final Map<String, Moniker> _identifiers = actx.symbols() ;
-		final Map<String, Operand> _operands = actx.statement().operands() ;
-		final Map<String, Operand> _options = options ;
+		logEvent(actx.$args(), actx.phase(), "dirs", "(dirs) {}: {}({})", this.getClass(), "expand", pctx) ;
+		logEvent(actx.$args(), actx.phase(), "args", "(args) {}: args: {}", this.getClass(), actx.statement().operands()) ;
 
-		final Map<String, Object> parms = DIR_matchInvocationOperands(_operands, _options, _identifiers) ;
+		final Map<String, Identifier> _ids = actx.identifiers() ;
+
+		final Map<String, Operand> _options = options ;
+		final Map<String, Operand> _operands = actx.statement().operands() ;
+		final Operand _operandList = _operands.get("list") ;
+
+		final String operandList_value = DIRS_coerceList(_operandList) ;
+
+		logEvent(actx.$args(), actx.phase(), "MACRO", "(MACRO) {}: options: {}", this.getClass(), _options) ;
+		logEvent(actx.$args(), actx.phase(), "MACRO", "(MACRO) {}: operands: {}", this.getClass(), _operands) ;
+		logEvent(actx.$args(), actx.phase(), "MACRO", "(MACRO) {}: list: {}", this.getClass(), operandList_value) ;
+
+		final Map<String, Object> parms = DIRS_matchInvocationArguments(actx, _options, _operands, _ids) ;
+		logEvent(actx.$args(), actx.phase(), "parms", "(parms) {}: parms: {}", this.getClass(), parms) ;
 
 		final List<String> lines = new ArrayList<>() ;
 		for ( final String line : this.lines )
 			lines.add(Templator.delimiters(UnixDelimiters).template(line).inject(parms)) ;
 
-		actx.list(DIR_isList(parms)) ;
 
-		actx.sources().add(new BlockSource(sourceID, sourceLN, lines, actx.list(), qualifier)) ;
+//		actx.sources().add(new BlockSource(sourceID, ln, lines, operandList_value.equalsIgnoreCase(".list"), actx.segment(), actx.source().peek().qualifier())) ;
+		actx.sources().add(new BlockSource(sourceID, ln, lines, operandList_value.equalsIgnoreCase(".list"), actx.segment(), qualifier)) ;
 		actx.source().push(Lists.last(actx.sources())) ;
+
+		logEvent(actx.$args(), actx.phase(), "srcs", "(srcs) {}: sources: {}", this.getClass(), actx.sources()) ;
+		logEvent(actx.$args(), actx.phase(), "srcs", "(srcs) {}: source: {}", this.getClass(), actx.source()) ;
+		logEvent(actx.$args(), actx.phase(), "srcs", "(srcs} {}: statement: {}", this.getClass(), actx.statement()) ;
 	}
 
 
-	@Log
+	//
+	// Implements iDirective ...
+	//
+
 	@Override
 	public void parse(final ParserRuleContext pctx) {
 
-		final MACRO macro = buildMacro(actx, pctx) ;
-		actx.macros().put(macro.name().toLowerCase(), macro) ;
-	}
+//		logEvent(actx.$args(), actx.phase(), "dirs", "(dirs) {}: {}({})", this.getClass(), "parse", pctx.getClass().getSimpleName()) ;
+		logEvent(actx.$args(), actx.phase(), "args", "(args) {}: args: {}", this.getClass(), actx.statement().operands()) ;
 
+		final iSource _src = actx.source().peek() ;
+		final int _sourceFN = _src.fn() ;
+		final int _sourceLN = _src.ln() + 1 ;
 
-	@Log
-	public static MACRO buildMacro(final AssemblyContext actx, final ParserRuleContext pctx) {
-
-		final iSource _source = actx.source().peek() ;
-		final Map<String, Operand> _operands = actx.statement().operands() ;
 		final String _macroName = ASMB_parsedText(pctx.getChild(0).getChild(0)) ;
-//		System.err.println(ASMB_dumpParseTreeNode(pctx.getChild(0).getChild(0))) ;
+		final String _macroNameFQN = ASMB_formatQualifiedID(_macroName, _src.qualifier()).toLowerCase() ;
 
-		_operands.put("list", new Option("list").assignment(new StringLiteral(".nolist"))) ;
-		final String _qualifiedMacroName = ASMB_formatQualifiedID(_macroName, _source.qualifier()) ;
+		final Map<String, Operand> _options = actx.statement().operands() ;
 
-		final List<String> lines = AssemblyUtils.ASMB_readSourceBlock(_source, ENDMACRO.class, actx) ;
+		logEvent(actx.$args(), actx.phase(), "MACRO", "(MACRO) {}: options: {}", this.getClass(), _options) ;
+		logEvent(actx.$args(), actx.phase(), "MACRO", "(MACRO) {}: fn: {}", this.getClass(), _sourceFN) ;
+		logEvent(actx.$args(), actx.phase(), "MACRO", "(MACRO) {}: ln: {}", this.getClass(), _sourceLN) ;
+		logEvent(actx.$args(), actx.phase(), "MACRO", "(MACRO) {}: macroName: {}", this.getClass(), _macroName) ;
 
 
-		return new MACRO(actx, _qualifiedMacroName, _operands, lines) ;
+		final List<String> lines = AssemblyUtils.ASMB_readSourceBlock(_src, ENDMACRO.class, actx) ;
+
+
+		final MACRO macro = new MACRO(actx, _macroNameFQN, _options, lines, _sourceFN, _sourceLN) ;
+
+		if ( !actx.macros().containsKey(macro.name.toUpperCase()) ) {
+			actx.macros().put(macro.name.toUpperCase(), macro) ;
+			logEvent(actx.$args(), actx.phase(), "MACRO", "(MACRO) {}: add MACRO: {}", this.getClass(), macro.name) ;
+		}
+		else
+			System.err.println("Duplicate MACRO " + macro.name + ".") ;
 	}
 }

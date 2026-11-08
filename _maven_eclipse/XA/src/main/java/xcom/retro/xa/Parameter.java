@@ -12,7 +12,7 @@ public class Parameter extends Operand {
 		super(moniker, assignment) ;
 	}
 
-	public Parameter(final String moniker) {
-		super(moniker) ;
+	public Parameter(final String moniker, final String source) {
+		super(moniker, source) ;
 	}
 }

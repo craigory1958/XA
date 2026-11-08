@@ -1,0 +1,14 @@
+
+    V1             .equ     1
+
+
+   .DECLARE    .macro   ver
+
+                   .ifndef  declared
+    declared           .equ     ${ver}
+
+                       .if ${ver} == V1
+                           .include "AssemblyTest_INCLUDE_MACRO_LIB.a65", as=.STDL, list=.list
+                       .endif
+                   .endif
+               .endmacro

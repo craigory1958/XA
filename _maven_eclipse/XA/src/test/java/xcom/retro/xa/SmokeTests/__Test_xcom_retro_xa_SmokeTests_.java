@@ -10,7 +10,7 @@ import org.junit.runners.Suite ;
 //@formatter:off
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-	_Test_KIM1_ROM.class
+	_Test_AssemblyTest_SmokeTests.class
 })
 //@formatter:on
 

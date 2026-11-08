@@ -1,0 +1,12 @@
+
+
+
+.mac	.macro	ref
+	 	 LDA	${ref}	
+		.endmacro
+	
+	
+abc 	.word	$1234
+	
+		.mac	abc, list=.list
+	

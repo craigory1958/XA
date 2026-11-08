@@ -9,8 +9,9 @@ import java.util.Map ;
 
 import org.antlr.v4.runtime.ParserRuleContext ;
 
+import xcom.retro.xa.AssemblyContext ;
 import xcom.retro.xa.Operand ;
-import xcom.retro.xa.XA.AssemblyContext ;
+import xcom.retro.xa.Statement ;
 import xcom.retro.xa.api.annotations.aDirective ;
 import xcom.retro.xa.api.interfaces.iDirective ;
 import xcom.retro.xa.expressions.value.StringLiteral ;
@@ -32,31 +33,34 @@ public class BYTE implements iDirective {
 	@Override
 	public void parse(final ParserRuleContext pctx) {
 
-		final Map<String, Operand> _operands = actx.statement().operands() ;
+		Statement _stmt = actx.statement() ;
+		final Map<String, Operand> _operands = _stmt.operands() ;
 
 		int size = 0 ;
 		for ( final Operand operand : _operands.values() )
-			size = size + (operand.assignment() instanceof StringLiteral ? ((StringLiteral) operand.assignment()).value().length : 1) ;
+			size += (operand.assignment() instanceof StringLiteral ? ((StringLiteral) operand.assignment()).value().length : 1) ;
 
 		final byte[] bytes = new byte[size] ;
-		actx.statement().bytes(bytes) ;
-		actx.segment().allocateBytes(actx.statement().bytes()) ;
+		_stmt.bytes(bytes) ;
+		actx.segment().allocateBytes(_stmt.bytes()) ;
 
-		actx.statement().assemblyCallbackMethod("assemble") ;
-		actx.statement().assemblyCallbackObject(this) ;
+
+		_stmt.assemblyCallbackMethod("assemble") ;
+		_stmt.assemblyCallbackObject(this) ;
 	}
 
 
 	@Log
 	public void assemble() {
 
-		final Map<String, Operand> _operands = actx.statement().operands() ;
+		Statement _stmt = actx.statement() ;
+		final Map<String, Operand> _operands = _stmt.operands() ;
 
-		final byte[] bytes = actx.statement().bytes() ;
+		final byte[] bytes = _stmt.bytes() ;
 
 		int b = 0 ;
 		for ( final Operand operand : _operands.values() ) {
-			final byte[] value = operand.assignment().eval(actx.symbols()).value() ;
+			final byte[] value = operand.assignment().eval(actx.identifiers()).value() ;
 
 			if ( operand.assignment() instanceof StringLiteral )
 				for ( final byte _byte : value )
@@ -65,6 +69,6 @@ public class BYTE implements iDirective {
 				bytes[b++] = EXPR_lsb(value) ;
 		}
 
-		actx.statement().bytes(bytes) ;
+		_stmt.bytes(bytes) ;
 	}
 }

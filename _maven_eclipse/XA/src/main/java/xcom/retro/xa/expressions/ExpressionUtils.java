@@ -8,7 +8,7 @@ import java.nio.ByteBuffer ;
 import org.antlr.v4.runtime.ParserRuleContext ;
 import org.antlr.v4.runtime.tree.ParseTreeWalker ;
 
-import xcom.retro.xa.XA.AssemblyContext ;
+import xcom.retro.xa.AssemblyContext ;
 import xcom.utils4j.logging.aspects.api.annotations.Log ;
 
 

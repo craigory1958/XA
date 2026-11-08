@@ -1,14 +1,8 @@
  
 
-grammar Directives ;
-
-options { 
-	caseInsensitive = true;	
-}
-
-import Expressions ;
-
-
+//
+// Directives (v1)
+//
 
 directive:  label? '.' ( Directives | macro ) argumentList? inject? ;
 macro:  Identifier ;
